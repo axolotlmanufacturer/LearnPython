@@ -1,0 +1,23 @@
+{
+  "name": "learnpython",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Interactive platform teaching Python from zero to intermediate proficiency.",
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspace=apps/web",
+    "test": "npm run test --workspace=apps/web",
+    "lint": "npm run lint --workspace=apps/web",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml,css}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

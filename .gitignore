@@ -1,0 +1,43 @@
+# Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.turbo/
+
+# Pyodide distribution: copied from the npm package at build time, never committed.
+# See docs/architecture.md §1.1.
+apps/web/public/pyodide/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Test / tooling output
+coverage/
+htmlcov/
+.coverage
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

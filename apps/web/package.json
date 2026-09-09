@@ -1,0 +1,45 @@
+{
+  "name": "@learnpython/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "sync-pyodide": "node scripts/sync-pyodide.mjs",
+    "predev": "npm run sync-pyodide",
+    "dev": "next dev",
+    "prebuild": "npm run sync-pyodide",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "pretest": "npm run sync-pyodide",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@codemirror/lang-python": "^6.2.1",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.6",
+    "@uiw/react-codemirror": "^4.25.11",
+    "next": "^16.3.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitest/coverage-v8": "^5.0.0",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "^16.3.4",
+    "pyodide": "^314.0.6",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.0",
+    "yaml": "^2.8.1"
+  }
+}

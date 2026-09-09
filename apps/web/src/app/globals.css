@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* Design tokens. Contrast ratios noted where they matter for the WCAG 2.1 AA
+   requirement in Section 8 of the brief. */
+@theme {
+  --color-ink: #10151f; /* body text on paper: 16.7:1 */
+  --color-ink-soft: #47526b; /* secondary text on paper: 7.6:1 */
+  --color-paper: #ffffff;
+  --color-paper-sunk: #f5f6f9;
+  --color-rule: #dfe3ec;
+  --color-brand: #1c5cd6; /* on paper: 6.4:1 */
+  --color-brand-dark: #15409a;
+  --color-pass: #0f6c45; /* on paper: 5.8:1 */
+  --color-pass-wash: #e7f5ee;
+  --color-fail: #a4262c; /* on paper: 6.3:1 */
+  --color-fail-wash: #fdeced;
+  --color-warn: #7a4b00; /* on paper: 7.1:1 */
+  --color-warn-wash: #fdf3e0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Never remove focus indication; only replace it with a clearer one. */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

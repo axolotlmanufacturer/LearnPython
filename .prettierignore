@@ -1,0 +1,8 @@
+node_modules/
+.next/
+apps/web/public/pyodide/
+apps/api/.venv/
+coverage/
+playwright-report/
+test-results/
+package-lock.json
