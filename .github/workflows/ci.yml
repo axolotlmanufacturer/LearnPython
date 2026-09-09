@@ -64,6 +64,10 @@ jobs:
           --health-retries 5
 
     env:
+      # Tests run against real PostgreSQL, not SQLite: the schema uses JSONB, and
+      # a suite that exercises a different engine than production is testing
+      # something other than the product.
+      TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/learnpython_test
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/learnpython_test
 
     defaults:
