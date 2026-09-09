@@ -8,6 +8,8 @@ out/
 # Pyodide distribution: copied from the npm package at build time, never committed.
 # See docs/architecture.md §1.1.
 apps/web/public/pyodide/
+# Generated copy of src/lib/python/harness.py, published for the Web Worker.
+apps/web/public/python/
 
 # Python
 __pycache__/

@@ -1,0 +1,207 @@
+/**
+ * Browser implementation of `PythonRunner`: Pyodide in a Web Worker.
+ *
+ * The timeout lives here rather than in the worker, and that is the whole point
+ * of the design. A learner's first `while` loop very often never ends, and code
+ * spinning inside the interpreter will not cooperate with any in-worker guard.
+ * The main thread can always terminate the worker, so it does — unconditionally,
+ * with no help required from the code being stopped (docs/architecture.md §1.2).
+ *
+ * After a termination the interpreter is gone, so a replacement worker is started
+ * immediately rather than at the next click: a learner who has just written an
+ * infinite loop is about to fix it and run again, and should not then wait two
+ * seconds for a reload they did not cause.
+ */
+
+import type { WorkerRequest, WorkerResponse } from "./protocol";
+import {
+  DEFAULT_TIMEOUT_MS,
+  engineFailure,
+  type ExecutionRequest,
+  type ExecutionResult,
+  type PythonRunner,
+  type RunnerState,
+} from "./types";
+
+export interface PyodideRunnerOptions {
+  /** Where the self-hosted Pyodide assets are served from. Must end in "/". */
+  indexUrl?: string;
+  /** Where the generated copy of harness.py is served from. */
+  harnessUrl?: string;
+  /** Build the worker. Overridable so tests can supply a stand-in. */
+  createWorker?: () => Worker;
+}
+
+const defaultCreateWorker = () =>
+  new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
+
+export class PyodideRunner implements PythonRunner {
+  private worker: Worker | null = null;
+  private readyPromise: Promise<void> | null = null;
+  private state: RunnerState = "idle";
+  private listeners = new Set<(state: RunnerState) => void>();
+  private nextId = 1;
+  private pending: {
+    id: number;
+    resolve: (result: ExecutionResult) => void;
+    timer: ReturnType<typeof setTimeout>;
+  } | null = null;
+  private disposed = false;
+
+  private readonly indexUrl: string;
+  private readonly harnessUrl: string;
+  private readonly createWorker: () => Worker;
+
+  constructor(options: PyodideRunnerOptions = {}) {
+    this.indexUrl = options.indexUrl ?? "/pyodide/";
+    this.harnessUrl = options.harnessUrl ?? "/python/harness.py";
+    this.createWorker = options.createWorker ?? defaultCreateWorker;
+  }
+
+  subscribe(listener: (state: RunnerState) => void): () => void {
+    this.listeners.add(listener);
+    listener(this.state);
+    return () => this.listeners.delete(listener);
+  }
+
+  private setState(state: RunnerState): void {
+    this.state = state;
+    for (const listener of this.listeners) listener(state);
+  }
+
+  ready(): Promise<void> {
+    if (this.disposed) return Promise.reject(new Error("This runner has been disposed."));
+    if (this.readyPromise) return this.readyPromise;
+
+    this.setState("loading");
+    const worker = this.createWorker();
+    this.worker = worker;
+
+    this.readyPromise = new Promise<void>((resolve, reject) => {
+      const onMessage = (event: MessageEvent<WorkerResponse>) => {
+        const message = event.data;
+        if (message.type === "ready") {
+          this.setState("ready");
+          resolve();
+          return;
+        }
+        if (message.type === "failure" && message.id === null) {
+          this.setState("failed");
+          reject(new Error(message.message));
+          return;
+        }
+        this.handleRunMessage(message);
+      };
+
+      worker.addEventListener("message", onMessage as EventListener);
+      worker.addEventListener("error", (event) => {
+        // A worker-level error can arrive before or after `ready`; only the
+        // pre-ready case should reject the load.
+        if (this.state === "loading") {
+          this.setState("failed");
+          reject(new Error(event.message || "The Python runtime failed to start."));
+        }
+      });
+
+      this.send({ type: "init", indexUrl: this.indexUrl, harnessUrl: this.harnessUrl });
+    });
+
+    return this.readyPromise;
+  }
+
+  private send(message: WorkerRequest): void {
+    this.worker?.postMessage(message);
+  }
+
+  private handleRunMessage(message: WorkerResponse): void {
+    const pending = this.pending;
+    if (!pending || message.type === "ready") return;
+    if (message.id !== pending.id) return; // A late reply from a superseded run.
+
+    clearTimeout(pending.timer);
+    this.pending = null;
+    this.setState("ready");
+
+    if (message.type === "result") {
+      pending.resolve(JSON.parse(message.payload) as ExecutionResult);
+    } else {
+      pending.resolve(engineFailure(message.message));
+    }
+  }
+
+  async run(request: ExecutionRequest): Promise<ExecutionResult> {
+    if (this.disposed) return engineFailure("This runner has been disposed.");
+
+    try {
+      await this.ready();
+    } catch (err) {
+      return engineFailure(
+        err instanceof Error ? err.message : "The Python runtime failed to start.",
+      );
+    }
+
+    // Disposal can land while the interpreter is still loading — a component
+    // unmounting during the first run is the ordinary case. Without this check
+    // the run would be registered against a terminated worker and its promise
+    // would never settle.
+    if (this.disposed) return engineFailure("The page stopped the running program.");
+
+    if (this.pending) {
+      return engineFailure("Another program is still running.");
+    }
+
+    const timeoutMs = request.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    const id = this.nextId++;
+    this.setState("running");
+
+    return new Promise<ExecutionResult>((resolve) => {
+      const timer = setTimeout(() => {
+        this.pending = null;
+        this.restart();
+        resolve({
+          ...engineFailure(
+            `Your program was still running after ${Math.round(timeoutMs / 1000)} seconds, so it was stopped.`,
+            "timeout",
+          ),
+        });
+      }, timeoutMs);
+
+      this.pending = { id, resolve, timer };
+      this.send({
+        type: "run",
+        id,
+        payload: JSON.stringify({
+          code: request.code,
+          stdin: request.stdin ?? [],
+          checks: request.checks ?? [],
+        }),
+      });
+    });
+  }
+
+  /** Destroy the interpreter and immediately begin loading a replacement. */
+  private restart(): void {
+    this.worker?.terminate();
+    this.worker = null;
+    this.readyPromise = null;
+    this.setState("restarting");
+    if (!this.disposed) {
+      // Pre-warm, so the learner's next run does not pay the reload.
+      void this.ready().catch(() => undefined);
+    }
+  }
+
+  dispose(): void {
+    this.disposed = true;
+    if (this.pending) {
+      clearTimeout(this.pending.timer);
+      this.pending.resolve(engineFailure("The page stopped the running program."));
+      this.pending = null;
+    }
+    this.worker?.terminate();
+    this.worker = null;
+    this.readyPromise = null;
+    this.listeners.clear();
+    this.state = "idle";
+  }
+}
