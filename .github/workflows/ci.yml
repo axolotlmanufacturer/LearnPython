@@ -119,8 +119,9 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/learnpython_e2e
-      API_ORIGIN: http://127.0.0.1:8000
+      # playwright.config.ts starts both servers itself, applies migrations, and
+      # loads content/ into this database before the suite runs.
+      E2E_DATABASE_URL: postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/learnpython_e2e
 
     steps:
       - uses: actions/checkout@v4

@@ -1,0 +1,42 @@
+slug: find-the-line
+lesson: when-things-go-wrong
+position: 2
+title: Find the line the error names
+bloom: analyze
+scaffold_level: debug
+prompt_markdown: |
+  This program has exactly one fault. Run it, read the traceback, and use the
+  line number it reports to find the problem.
+
+  When it is fixed, the program should print all four lines:
+
+  ```
+  Line one is fine.
+  Line two is fine.
+  Line three is fine.
+  Line four is fine.
+  ```
+
+  Fix only the broken line. The other three are correct as they stand.
+starter_code: |
+  print("Line one is fine.")
+  print("Line two is fine.")
+  print(Line three is fine.)
+  print("Line four is fine.")
+checks:
+  - kind: stdout
+    label: All four lines print
+    expected: |
+      Line one is fine.
+      Line two is fine.
+      Line three is fine.
+      Line four is fine.
+hints:
+  - Run it first. The traceback names a line number — start there.
+  - Compare the broken line with the three that work. What do they have that it does not?
+  - Line 3 is missing its quotation marks.
+solution_code: |
+  print("Line one is fine.")
+  print("Line two is fine.")
+  print("Line three is fine.")
+  print("Line four is fine.")

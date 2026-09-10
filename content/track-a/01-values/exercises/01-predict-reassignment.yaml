@@ -1,0 +1,41 @@
+slug: predict-reassignment
+lesson: values-and-variables
+position: 1
+title: Predict what this prints
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  Do not change this program yet. Work out **on paper, or in your head**, what
+  each of the two `print` lines will show.
+
+  Write your prediction down somewhere before you press Run. Being wrong here is
+  useful — it is much easier to correct a belief you have actually committed to.
+
+  Then press Run and compare.
+starter_code: |
+  cats = 2
+  dogs = 5
+  animals = cats + dogs
+
+  cats = 100
+
+  print(animals)
+  print(cats + dogs)
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      7
+      105
+hints:
+  - "`animals` was worked out on line 3, when `cats` was still 2."
+  - Line 7 is worked out now, after `cats` was changed. The two lines give different answers on purpose.
+solution_code: |
+  cats = 2
+  dogs = 5
+  animals = cats + dogs
+
+  cats = 100
+
+  print(animals)
+  print(cats + dogs)

@@ -1,0 +1,45 @@
+slug: fix-the-type-error
+lesson: types-and-arithmetic
+position: 2
+title: Fix the TypeError
+bloom: analyze
+scaffold_level: debug
+prompt_markdown: |
+  This program is meant to print `You have 12 apples in total.` — but it stops
+  with a `TypeError`.
+
+  Run it, read the error, and work out which value is text and which is a number.
+
+  Then fix it so that:
+
+  - `total` holds the **number** 12, not the text `"12"`; and
+  - the program prints the sentence.
+
+  Do not change the first two lines. Working with values that arrive as the wrong
+  type is a real situation, and converting them is the real fix.
+starter_code: |
+  crate_count = "3"
+  apples_per_crate = 4
+
+  total = crate_count * apples_per_crate
+
+  print("You have " + total + " apples in total.")
+checks:
+  - kind: expr
+    label: total is the number 12
+    expression: total
+    expected: 12
+  - kind: stdout
+    label: The sentence prints correctly
+    expected: You have 12 apples in total.
+hints:
+  - 'Run it as it stands. `"3" * 4` does not fail — look at what it actually produces.'
+  - "`crate_count` is text. Convert it with `int(crate_count)` before multiplying."
+  - "The last line joins text to a number. `str(total)` makes it joinable."
+solution_code: |
+  crate_count = "3"
+  apples_per_crate = 4
+
+  total = int(crate_count) * apples_per_crate
+
+  print("You have " + str(total) + " apples in total.")

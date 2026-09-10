@@ -1,0 +1,79 @@
+items:
+  # Spaced repetition (Section 2.4): the first item reaches back to Module 0
+  # rather than testing only what this module just taught.
+  - slug: recall-reading-a-traceback
+    position: 1
+    kind: multiple_choice
+    reviews_module_slug: orientation
+    prompt_markdown: |
+      From Module 0 — a program stops with this message. Which part tells you
+      *where* to look?
+
+      ```
+      Traceback (most recent call last):
+        File "<your code>", line 4, in <module>
+          print(totl)
+      NameError: name 'totl' is not defined
+      ```
+    options:
+      - "`line 4`"
+      - "`NameError`"
+      - "`Traceback (most recent call last):`"
+      - "`<module>`"
+    answer: "`line 4`"
+    explanation_markdown: >-
+      The last line says *what* went wrong; the middle lines say *where*. Here,
+      `totl` looks like a misspelling of `total` — the kind of thing the line
+      number sends you straight to.
+
+  - slug: assignment-direction
+    position: 2
+    kind: multiple_choice
+    prompt_markdown: |
+      After these two lines, what does `b` hold?
+
+      ```python
+      a = 5
+      b = a
+      a = 9
+      ```
+    options:
+      - "5"
+      - "9"
+      - Nothing — `b` was never given a value
+      - It changes whenever `a` changes
+    answer: "5"
+    explanation_markdown: >-
+      `b = a` copies the value that `a` had *at that moment*. It does not create
+      a link between the two names, so changing `a` afterwards leaves `b` alone.
+
+  - slug: string-vs-int-plus
+    position: 3
+    kind: predict_output
+    prompt_markdown: What does this print?
+    code: |
+      print("2" + "2")
+    options:
+      - "22"
+      - "4"
+      - "2 2"
+      - A TypeError
+    answer: "22"
+    explanation_markdown: >-
+      Both values are text, so `+` joins them end to end. There is no error —
+      which is what makes this one dangerous. `2 + 2` would give `4`, and
+      `"2" + 2` would be a TypeError.
+
+  - slug: modulo-meaning
+    position: 4
+    kind: multiple_choice
+    prompt_markdown: What is `17 % 5`?
+    options:
+      - "2"
+      - "3"
+      - "3.4"
+      - "85"
+    answer: "2"
+    explanation_markdown: >-
+      5 goes into 17 three times, using 15, and leaves 2. `17 // 5` is the 3;
+      `17 % 5` is the 2.

@@ -1,0 +1,55 @@
+slug: seconds-to-minutes
+lesson: types-and-arithmetic
+position: 3
+title: Turn seconds into minutes and seconds
+bloom: apply
+scaffold_level: write_from_spec
+prompt_markdown: |
+  `total_seconds` holds 197. Work out how many whole minutes that is, and how
+  many seconds are left over, and print:
+
+  ```
+  3 minutes and 17 seconds
+  ```
+
+  This is exactly what `//` and `%` are for — one gives you how many whole times
+  60 fits in, the other gives you what is left. Use them rather than a decimal
+  division.
+
+  Your program should still be correct if `total_seconds` were changed to some
+  other number, so work it out rather than typing 3 and 17 in directly.
+starter_code: |
+  total_seconds = 197
+
+  minutes = ...
+  seconds = ...
+
+  print(...)
+checks:
+  - kind: expr
+    label: minutes is 3
+    expression: minutes
+    expected: 3
+  - kind: expr
+    label: seconds is 17
+    expression: seconds
+    expected: 17
+  - kind: stdout
+    label: The sentence prints correctly
+    expected: 3 minutes and 17 seconds
+  - kind: source
+    label: The answer is calculated, not typed in
+    forbid_text:
+      - "minutes = 3"
+      - "seconds = 17"
+hints:
+  - How many whole 60s fit into 197? That is `total_seconds // 60`.
+  - What is left after taking those out? That is `total_seconds % 60`.
+  - "Joining numbers into a sentence needs `str(...)` around each one — or wait for f-strings in the next module, which make this much tidier."
+solution_code: |
+  total_seconds = 197
+
+  minutes = total_seconds // 60
+  seconds = total_seconds % 60
+
+  print(str(minutes) + " minutes and " + str(seconds) + " seconds")

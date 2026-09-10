@@ -1,0 +1,40 @@
+slug: change-the-order
+lesson: what-a-program-is
+position: 2
+title: Change the order
+bloom: apply
+scaffold_level: modify
+prompt_markdown: |
+  These three lines are in the wrong order — as written, the program says goodbye
+  before it says hello.
+
+  Rearrange them so the output reads:
+
+  ```
+  First.
+  Second.
+  Third.
+  ```
+
+  You do not need to type anything new. Move the existing lines.
+
+  This is the whole point of the lesson made concrete: the order of the lines
+  *is* the order of the output.
+starter_code: |
+  print("Third.")
+  print("First.")
+  print("Second.")
+checks:
+  - kind: stdout
+    label: The three lines print in order
+    expected: |
+      First.
+      Second.
+      Third.
+hints:
+  - The line that should appear first in the output needs to be the first line of the program.
+  - Cut the line `print("First.")` and paste it above `print("Third.")`.
+solution_code: |
+  print("First.")
+  print("Second.")
+  print("Third.")

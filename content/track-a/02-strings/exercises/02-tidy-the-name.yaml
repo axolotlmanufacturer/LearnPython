@@ -1,0 +1,39 @@
+slug: tidy-the-name
+lesson: working-with-text
+position: 2
+title: Tidy up a messy name
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  `raw_name` came from a form someone filled in carelessly: it has spaces at both
+  ends and inconsistent capitals.
+
+  Fill in the blanks so that `clean_name` holds `"grace hopper"` — no surrounding
+  spaces, all lower case.
+
+  Remember that each method gives you a *new* string, so you have to keep the
+  result of each step.
+starter_code: |
+  raw_name = "   GRACE Hopper  "
+
+  clean_name = raw_name...
+
+  print(f"[{clean_name}]")
+checks:
+  - kind: expr
+    label: clean_name is "grace hopper"
+    expression: clean_name
+    expected: grace hopper
+  - kind: stdout
+    label: Prints the tidied name in brackets
+    expected: "[grace hopper]"
+hints:
+  - Two methods are needed — one for the spaces, one for the capitals.
+  - "`.strip()` removes the spaces; `.lower()` fixes the capitals."
+  - "You can chain them: `raw_name.strip().lower()`. Each one works on the result of the one before."
+solution_code: |
+  raw_name = "   GRACE Hopper  "
+
+  clean_name = raw_name.strip().lower()
+
+  print(f"[{clean_name}]")

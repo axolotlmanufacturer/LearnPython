@@ -1,0 +1,22 @@
+slug: orientation
+track: track-a
+position: 0
+title: "Orientation: what you are about to do"
+summary_markdown: >-
+  Before any Python, a short tour: what a program actually is, how to use the
+  editor on this page, and — most importantly — what to do when something goes
+  wrong. Nothing here is memorised. It exists so that the real material starts
+  on familiar ground.
+
+# This module carries no Apply-or-higher objectives on purpose. Its entire job is
+# to reduce cognitive load before real content begins (brief §5, Module 0), so
+# everything it introduces is about the environment, not the language.
+objectives:
+  - text: Describe what a program is, in one sentence, without using the word "code"
+    bloom: understand
+  - text: Run a program in the editor and find its output
+    bloom: remember
+  - text: Recognise the three parts of an error message — the type, the message, and the line
+    bloom: understand
+  - text: Explain why running broken code on this platform is safe
+    bloom: understand

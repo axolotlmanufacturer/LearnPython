@@ -1,0 +1,80 @@
+items:
+  # Spaced repetition: reaches back two modules, not one — Module 0's lesson on
+  # reading a traceback, now applied to an error this module can actually cause.
+  - slug: recall-error-type
+    position: 1
+    kind: multiple_choice
+    reviews_module_slug: orientation
+    prompt_markdown: |
+      From Module 0 — which part of this message names the *kind* of problem?
+
+      ```
+      ValueError: invalid literal for int() with base 10: 'thirty'
+      ```
+    options:
+      - "`ValueError`"
+      - "`invalid literal`"
+      - "`base 10`"
+      - "`'thirty'`"
+    answer: "`ValueError`"
+    explanation_markdown: >-
+      The word before the colon is the error type; everything after it is the
+      detail. Here the detail even names the value that caused it — someone typed
+      a word where a number was needed.
+
+  - slug: recall-int-vs-str
+    position: 2
+    kind: predict_output
+    reviews_module_slug: values
+    prompt_markdown: |
+      From Module 1 — what does this print?
+    code: |
+      print("7" * 3)
+    options:
+      - "777"
+      - "21"
+      - "7 7 7"
+      - A TypeError
+    answer: "777"
+    explanation_markdown: >-
+      Multiplying a string by a whole number repeats it. No error — which is
+      exactly why forgetting to convert `input()` can produce a wrong answer
+      rather than a crash.
+
+  - slug: strings-immutable
+    position: 3
+    kind: predict_output
+    prompt_markdown: What does this print?
+    code: |
+      word = "quiet"
+      word.upper()
+      print(word)
+    options:
+      - "quiet"
+      - "QUIET"
+      - Nothing
+      - An AttributeError
+    answer: "quiet"
+    explanation_markdown: >-
+      `.upper()` built the string `"QUIET"` and then it was discarded, because
+      nothing was done with it. To keep it you have to assign it:
+      `word = word.upper()`.
+
+  - slug: input-returns-text
+    position: 4
+    kind: multiple_choice
+    prompt_markdown: |
+      Someone types `12` at this prompt. What type is `answer`?
+
+      ```python
+      answer = input("How many? ")
+      ```
+    options:
+      - "`str` — always, whatever was typed"
+      - "`int`, because 12 is a whole number"
+      - "`float`, because all numbers are floats"
+      - It depends on what was typed
+    answer: "`str` — always, whatever was typed"
+    explanation_markdown: >-
+      `input()` returns a string every time, with no exceptions. If you need a
+      number, convert it yourself with `int()` or `float()`.

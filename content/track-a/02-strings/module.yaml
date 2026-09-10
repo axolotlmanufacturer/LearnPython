@@ -1,0 +1,23 @@
+slug: strings
+track: track-a
+position: 2
+title: Strings and input
+summary_markdown: >-
+  Text: how to inspect it, reshape it, and build it neatly with f-strings. Then
+  `input()`, which is where your programs stop being fixed recitals and start
+  responding to whoever is running them — and where the difference between the
+  number 5 and the text "5" finally bites.
+
+objectives:
+  - text: Explain that a string is a sequence of characters with positions starting at 0
+    bloom: understand
+  - text: Use string methods such as .upper(), .strip(), and .replace() to reshape text
+    bloom: apply
+  - text: Build readable output with f-strings instead of joining with +
+    bloom: apply
+  - text: Read a value from the person running the program with input()
+    bloom: apply
+  - text: Explain why input() always returns text, and convert when a number is needed
+    bloom: analyze
+  - text: Diagnose a program that fails because typed input was not converted
+    bloom: evaluate

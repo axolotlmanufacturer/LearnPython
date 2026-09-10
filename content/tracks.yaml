@@ -1,0 +1,19 @@
+tracks:
+  - slug: track-a
+    position: 1
+    title: Python Fundamentals
+    summary_markdown: >-
+      Start from nothing and finish able to write a real program: variables and
+      types, decisions, loops, collections, functions, error handling, and
+      files. No prior programming experience assumed, and nothing to install.
+
+  - slug: track-b
+    position: 2
+    title: Applied Statistics for Biological Data
+    prerequisite_slug: track-a
+    summary_markdown: >-
+      Use the Python you have learned to analyse real tabular data: loading and
+      cleaning it with pandas, computing statistics by hand and then with the
+      standard tools, comparing groups, correcting for multiple comparisons, and
+      reading the plots you produce. No biology background assumed — the small
+      amount of vocabulary you need is introduced where you need it.

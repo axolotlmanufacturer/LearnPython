@@ -1,0 +1,34 @@
+slug: predict-the-types
+lesson: types-and-arithmetic
+position: 1
+title: Predict what each line prints
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  Five lines. Predict all five answers before you press Run, and write them down.
+
+  Two of them are the ones people get wrong: line 2, and line 5.
+starter_code: |
+  print(10 + 5)
+  print("10" + "5")
+  print(10 / 5)
+  print(10 // 3)
+  print(10 % 3)
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      15
+      105
+      2.0
+      3
+      1
+hints:
+  - "`+` joins text end to end. It does not add the numbers the text looks like."
+  - "`/` always produces a decimal number, even when the division is exact."
+solution_code: |
+  print(10 + 5)
+  print("10" + "5")
+  print(10 / 5)
+  print(10 // 3)
+  print(10 % 3)

@@ -1,0 +1,45 @@
+slug: rewrite-with-fstrings
+lesson: working-with-text
+position: 3
+title: Rewrite it with an f-string
+bloom: apply
+scaffold_level: modify
+prompt_markdown: |
+  This program works, but the last line is doing it the hard way — four `+`
+  joins and two `str()` conversions.
+
+  Rewrite that line as a single f-string producing exactly the same output:
+
+  ```
+  Bread costs 2.5 for 3, so 7.50 in total.
+  ```
+
+  Note the total is shown to two decimal places. `{value:.2f}` does that for you.
+starter_code: |
+  item = "Bread"
+  price = 2.5
+  quantity = 3
+  total = price * quantity
+
+  print(item + " costs " + str(price) + " for " + str(quantity) + ", so " + str(total) + " in total.")
+checks:
+  - kind: stdout
+    label: The sentence is unchanged apart from the total's formatting
+    expected: Bread costs 2.5 for 3, so 7.50 in total.
+  - kind: source
+    label: The line is built with an f-string, not with +
+    require_text:
+      - 'f"'
+    forbid_text:
+      - str(
+hints:
+  - 'Start with `print(f"...")` and copy the fixed words in unchanged.'
+  - "Replace each joined-in value with the variable name in braces: `{item}`, `{price}`."
+  - "For two decimal places, write `{total:.2f}`."
+solution_code: |
+  item = "Bread"
+  price = 2.5
+  quantity = 3
+  total = price * quantity
+
+  print(f"{item} costs {price} for {quantity}, so {total:.2f} in total.")

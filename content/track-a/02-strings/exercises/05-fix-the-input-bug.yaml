@@ -1,0 +1,43 @@
+slug: fix-the-input-bug
+lesson: asking-for-input
+position: 2
+title: Fix the input bug
+bloom: evaluate
+scaffold_level: debug
+prompt_markdown: |
+  This program should ask for a number of apples and print the total cost at 3
+  each. When it runs, `4` will be typed.
+
+  It does not fail with an error — which makes it more dangerous, not less. It
+  prints a confident, wrong answer.
+
+  Run it, look hard at what it prints, and work out what Python actually did with
+  `"4" * 3`. Then fix it so the output is:
+
+  ```
+  How many apples? That will cost 12.
+  ```
+starter_code: |
+  count = input("How many apples? ")
+  cost = count * 3
+
+  print(f"That will cost {cost}.")
+checks:
+  - kind: expr
+    label: cost is the number 12
+    expression: cost
+    expected: 12
+  - kind: stdout
+    label: Prompts and prints the right total
+    expected: "How many apples? That will cost 12."
+stdin:
+  - "4"
+hints:
+  - '`count` is the text `"4"`, not the number 4. Multiplying text by 3 repeats it.'
+  - "Convert what was typed before calculating with it: `int(...)`."
+  - '`count = int(input("How many apples? "))`'
+solution_code: |
+  count = int(input("How many apples? "))
+  cost = count * 3
+
+  print(f"That will cost {cost}.")

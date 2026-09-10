@@ -1,0 +1,42 @@
+slug: predict-immutability
+lesson: working-with-text
+position: 1
+title: Predict what the methods change
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  Predict all four lines before running.
+
+  Line 3 is the one to think hardest about. `title.upper()` on line 2 definitely
+  produced `"THE HOBBIT"` — so what happened to it?
+starter_code: |
+  title = "the hobbit"
+  title.upper()
+  print(title)
+
+  title = title.upper()
+  print(title)
+
+  print(title.replace("THE", "A"))
+  print(title)
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      the hobbit
+      THE HOBBIT
+      A HOBBIT
+      THE HOBBIT
+hints:
+  - A method call produces a new string. If nothing is done with it, it is discarded.
+  - Line 5 keeps the result by assigning it back. Line 2 does not.
+solution_code: |
+  title = "the hobbit"
+  title.upper()
+  print(title)
+
+  title = title.upper()
+  print(title)
+
+  print(title.replace("THE", "A"))
+  print(title)

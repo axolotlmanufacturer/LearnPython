@@ -1,0 +1,23 @@
+slug: values
+track: track-a
+position: 1
+title: Values, variables, and types
+summary_markdown: >-
+  The raw material of every program: the values it works with, the names you give
+  them so you can use them again, and the fact that Python treats the number 5
+  and the text "5" as genuinely different things — the source of more beginner
+  confusion than any other single idea.
+
+objectives:
+  - text: Describe what a value is and name the four basic kinds
+    bloom: understand
+  - text: Predict what a short sequence of assignments prints
+    bloom: understand
+  - text: Store values in well-named variables and use them later
+    bloom: apply
+  - text: Calculate with the arithmetic operators, including // and %
+    bloom: apply
+  - text: Explain why "5" + "3" gives "53" while 5 + 3 gives 8
+    bloom: analyze
+  - text: Diagnose a TypeError caused by mixing text and numbers
+    bloom: analyze

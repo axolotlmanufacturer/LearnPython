@@ -86,6 +86,27 @@ ends"), not a hot path. We mitigate the visible cost by pre-warming a replacemen
 immediately after a termination. The interrupt-buffer path is the documented upgrade if
 timeouts ever become frequent enough to matter.
 
+### 1.3 The worker is a served module, not a bundled chunk
+
+Found while getting the end-to-end suite green, and recorded because it is not
+guessable from the outside: `new Worker(new URL("./worker.ts", import.meta.url),
+{ type: "module" })` produces a **classic** worker under the bundler, and Pyodide
+refuses to initialise in one — `Classic web workers are not supported`.
+
+So `src/lib/python/worker.js` is plain JavaScript, copied verbatim to
+`public/python/worker.js` by the same script that publishes the Pyodide assets
+and `harness.py`, and loaded as a real module worker from our own origin. This
+also removes the bundler from a path where its output _format_ is load-bearing.
+The file has no dependency on application code, so there is nothing to bundle;
+its message protocol stays typed on the main-thread side in `protocol.ts`.
+
+A related trap in the same area: Pyodide locates its own assets with
+`new URL(file, indexURL)`, and a path-only base such as `/pyodide/` is not a
+valid base for that **inside a worker**, though it works on the main thread.
+`PyodideRunner` therefore resolves its URLs to absolute ones before handing them
+over. Both faults are invisible to unit tests and to a Node-side runner, which is
+exactly why the Playwright suite drives a real browser (Section 10).
+
 ---
 
 ## 2. Confirmed stack (Section 4.2), with versions and two notes

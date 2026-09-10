@@ -1,0 +1,51 @@
+slug: fill-in-the-total
+lesson: values-and-variables
+position: 2
+title: Work out a total
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  A shop sells notebooks at 3 each and pens at 2 each. Someone buys 4 notebooks
+  and 10 pens.
+
+  The variables are already set up. Replace each `...` so that `total` ends up
+  holding the full cost, then print it.
+
+  The answer is 32, but write the calculation using the variable names rather
+  than typing `32` — that way the program still works if the prices change.
+starter_code: |
+  notebook_price = 3
+  pen_price = 2
+
+  notebooks_bought = 4
+  pens_bought = 10
+
+  total = ...
+
+  print(...)
+checks:
+  - kind: expr
+    label: total holds the full cost
+    expression: total
+    expected: 32
+  - kind: stdout
+    label: The program prints the total
+    expected: "32"
+  - kind: source
+    label: The calculation uses the variables, not a typed-in answer
+    forbid_text:
+      - "total = 32"
+hints:
+  - Four notebooks cost `notebook_price * notebooks_bought`.
+  - Work out each of the two subtotals, then add them together.
+  - "`total = notebook_price * notebooks_bought + pen_price * pens_bought`"
+solution_code: |
+  notebook_price = 3
+  pen_price = 2
+
+  notebooks_bought = 4
+  pens_bought = 10
+
+  total = notebook_price * notebooks_bought + pen_price * pens_bought
+
+  print(total)

@@ -1,0 +1,50 @@
+# Module 0 is the first module, so it has no earlier material to revisit —
+# the spaced-repetition rule in validate_curriculum exempts position 0.
+items:
+  - slug: order-of-execution
+    position: 1
+    kind: multiple_choice
+    prompt_markdown: In what order does Python carry out the lines of a program?
+    options:
+      - Top to bottom, one at a time
+      - All at once, together
+      - In whatever order is fastest
+      - Bottom to top
+    answer: Top to bottom, one at a time
+    explanation_markdown: >-
+      Top to bottom, one line at a time. Later modules add ways to skip lines or
+      repeat them, but this stays the default.
+
+  - slug: read-traceback-bottom-up
+    position: 2
+    kind: multiple_choice
+    prompt_markdown: |
+      Which line of a traceback tells you *what kind* of thing went wrong?
+    options:
+      - The last line
+      - The first line
+      - The middle line
+      - The longest line
+    answer: The last line
+    explanation_markdown: >-
+      Read a traceback from the bottom up. The last line names the error type and
+      gives the detail; the lines above tell you where it happened.
+
+  - slug: predict-nameerror
+    position: 3
+    kind: predict_output
+    prompt_markdown: |
+      What happens when this program runs?
+    code: |
+      print("ready")
+      print(steady)
+    options:
+      - It prints `ready`, then stops with a NameError
+      - It prints `ready` and `steady`
+      - It prints nothing at all
+      - It prints `steady`, then stops with a NameError
+    answer: It prints `ready`, then stops with a NameError
+    explanation_markdown: >-
+      Line 1 runs and prints `ready`. Line 2 refers to a name Python has never
+      been given a value for, so the program stops there. Output produced before
+      an error is not undone — it has already happened.

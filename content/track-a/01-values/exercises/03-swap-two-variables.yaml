@@ -1,0 +1,58 @@
+slug: swap-two-variables
+lesson: values-and-variables
+position: 3
+title: Swap two variables
+bloom: analyze
+scaffold_level: write_from_spec
+prompt_markdown: |
+  `left` holds `"apple"` and `right` holds `"orange"`. Swap them, so that
+  afterwards `left` holds `"orange"` and `right` holds `"apple"`.
+
+  There is a trap here, and it is worth walking into it deliberately. The obvious
+  attempt is:
+
+  ```python
+  left = right
+  right = left
+  ```
+
+  Try it and see what you get. Then work out *why*: after the first line, what
+  value has been lost, and can the second line still find it?
+
+  Solve it without deleting or editing the first two lines.
+starter_code: |
+  left = "apple"
+  right = "orange"
+
+  # Your swap goes here.
+
+  print(left)
+  print(right)
+checks:
+  - kind: expr
+    label: left now holds "orange"
+    expression: left
+    expected: orange
+  - kind: expr
+    label: right now holds "apple"
+    expression: right
+    expected: apple
+  - kind: stdout
+    label: The program prints both, swapped
+    expected: |
+      orange
+      apple
+hints:
+  - 'After `left = right`, the word `"apple"` is not stored anywhere any more. Nothing can get it back.'
+  - Keep a copy of one value in a third variable before you overwrite it.
+  - "`spare = left`, then `left = right`, then `right = spare`."
+solution_code: |
+  left = "apple"
+  right = "orange"
+
+  spare = left
+  left = right
+  right = spare
+
+  print(left)
+  print(right)

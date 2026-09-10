@@ -1,0 +1,58 @@
+slug: receipt
+lesson: asking-for-input
+position: 3
+title: Write a receipt
+bloom: create
+scaffold_level: write_from_spec
+prompt_markdown: |
+  Write this one from scratch. It pulls together everything in the module.
+
+  Ask three questions, in this order:
+
+  1. `Item: ` — the name of the item (text)
+  2. `Price: ` — the price of one, which may have a decimal point
+  3. `Quantity: ` — how many, a whole number
+
+  Then print two lines:
+
+  ```
+  BREAD x 3
+  Total: 7.50
+  ```
+
+  The rules:
+
+  - The item name is printed in **capitals**, however it was typed.
+  - The total is `price * quantity`, shown to **exactly two decimal places**.
+  - Build both lines with f-strings.
+
+  The answers typed will be `bread`, `2.5`, and `3`.
+starter_code: |
+  # Ask for the item, the price, and the quantity.
+
+  # Print the two lines of the receipt.
+stdin:
+  - bread
+  - "2.5"
+  - "3"
+checks:
+  - kind: stdout
+    label: The three prompts and the receipt are printed
+    expected: "Item: Price: Quantity: BREAD x 3\nTotal: 7.50"
+  - kind: expr
+    label: The total is calculated as a number
+    expression: round(price * quantity, 2) == 7.5
+hints:
+  - Three `input()` calls, in the order given. The prompts must match exactly, including the trailing space.
+  - "The price can have a decimal point, so use `float(...)`. The quantity is whole, so `int(...)`."
+  - "`.upper()` capitalises the item name; `{total:.2f}` gives two decimal places."
+  - "The variables must be named `price` and `quantity` for the second check to find them."
+solution_code: |
+  item = input("Item: ").strip()
+  price = float(input("Price: "))
+  quantity = int(input("Quantity: "))
+
+  total = price * quantity
+
+  print(f"{item.upper()} x {quantity}")
+  print(f"Total: {total:.2f}")

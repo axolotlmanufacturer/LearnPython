@@ -1,0 +1,45 @@
+slug: greet-by-name
+lesson: asking-for-input
+position: 1
+title: Greet whoever is running the program
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  Ask for a name and greet the person by it.
+
+  When this runs, the answer typed will be `  Alan  ` — with spaces on both
+  sides, because people are careless. Tidy it before using it.
+
+  The output should be exactly:
+
+  ```
+  What is your name? Hello, Alan! Nice to meet you.
+  ```
+
+  (The prompt and the greeting appear on the same line because the prompt does
+  not end with a line break — that is normal.)
+starter_code: |
+  name = input("What is your name? ")...
+
+  print(...)
+stdin:
+  - "  Alan  "
+checks:
+  - kind: expr
+    label: name holds "Alan" with no surrounding spaces
+    expression: name
+    expected: Alan
+  - kind: stdout
+    label: Prompts and then greets by name
+    expected: "What is your name? Hello, Alan! Nice to meet you."
+  - kind: source
+    label: The greeting is built with an f-string
+    require_text:
+      - 'f"'
+hints:
+  - "`.strip()` removes spaces from both ends of what was typed."
+  - '`print(f"Hello, {name}! Nice to meet you.")`'
+solution_code: |
+  name = input("What is your name? ").strip()
+
+  print(f"Hello, {name}! Nice to meet you.")

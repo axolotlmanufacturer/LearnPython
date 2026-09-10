@@ -28,12 +28,24 @@ export interface PyodideRunnerOptions {
   indexUrl?: string;
   /** Where the generated copy of harness.py is served from. */
   harnessUrl?: string;
+  /** Where the generated copy of worker.js is served from. */
+  workerUrl?: string;
   /** Build the worker. Overridable so tests can supply a stand-in. */
   createWorker?: () => Worker;
 }
 
-const defaultCreateWorker = () =>
-  new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
+/** The worker is a served module, not a bundled chunk — the bundler emits a
+ * classic worker, and Pyodide will not initialise in one. See
+ * src/lib/python/worker.js and docs/architecture.md §1.3. */
+const DEFAULT_WORKER_URL = "/python/worker.js";
+
+/** Resolve a same-origin path against the page's origin. Left untouched if it
+ * is already absolute, and passed through unchanged outside a browser so tests
+ * can assert on the value they supplied. */
+function absolute(url: string): string {
+  if (typeof location === "undefined" || /^[a-z]+:\/\//i.test(url)) return url;
+  return new URL(url, location.origin).href;
+}
 
 export class PyodideRunner implements PythonRunner {
   private worker: Worker | null = null;
@@ -53,9 +65,15 @@ export class PyodideRunner implements PythonRunner {
   private readonly createWorker: () => Worker;
 
   constructor(options: PyodideRunnerOptions = {}) {
-    this.indexUrl = options.indexUrl ?? "/pyodide/";
-    this.harnessUrl = options.harnessUrl ?? "/python/harness.py";
-    this.createWorker = options.createWorker ?? defaultCreateWorker;
+    // Absolute, not path-relative. Pyodide locates its own assets with
+    // `new URL(file, indexURL)`, and a path-only base such as "/pyodide/" is not
+    // a valid base for that inside a worker — it throws where it would have
+    // worked on the main thread. Resolving here keeps the callers' relative
+    // paths convenient without the worker inheriting the ambiguity.
+    this.indexUrl = absolute(options.indexUrl ?? "/pyodide/");
+    this.harnessUrl = absolute(options.harnessUrl ?? "/python/harness.py");
+    const workerUrl = absolute(options.workerUrl ?? DEFAULT_WORKER_URL);
+    this.createWorker = options.createWorker ?? (() => new Worker(workerUrl, { type: "module" }));
   }
 
   subscribe(listener: (state: RunnerState) => void): () => void {

@@ -1,0 +1,29 @@
+slug: run-your-first-program
+lesson: what-a-program-is
+position: 1
+title: Run your first program
+bloom: remember
+scaffold_level: predict
+prompt_markdown: |
+  This program is already written and already correct. You do not need to change
+  a thing.
+
+  Before you press **Run**, answer this in your head: how many lines will appear
+  in the output?
+
+  Then press Run and see whether you were right.
+starter_code: |
+  print("Hello.")
+  print("This is a program.")
+  print("It ran from top to bottom.")
+checks:
+  - kind: stdout
+    label: The program runs and prints its three lines
+    expected: |
+      Hello.
+      This is a program.
+      It ran from top to bottom.
+solution_code: |
+  print("Hello.")
+  print("This is a program.")
+  print("It ran from top to bottom.")

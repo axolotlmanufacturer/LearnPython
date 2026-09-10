@@ -1,0 +1,30 @@
+slug: read-the-error
+lesson: when-things-go-wrong
+position: 1
+title: Cause an error on purpose
+bloom: understand
+scaffold_level: fill_in
+prompt_markdown: |
+  Replace the word `BREAK_ME` with any word you like that is **not** in quotation
+  marks — `banana`, `wibble`, your own name. Then press Run.
+
+  You should get a `NameError`. Read which line it points at, and check that the
+  word it names is the one you typed.
+
+  Then fix it: put quotation marks around the word so the program prints it
+  instead. When it prints, the check below will pass.
+starter_code: |
+  print(BREAK_ME)
+checks:
+  - kind: source
+    label: You are printing a piece of text in quotes
+    forbid_text:
+      - BREAK_ME
+  - kind: expr
+    label: The program prints something
+    expression: "True"
+hints:
+  - "A word with no quotes is a *name*. Python looks for something with that name and cannot find one."
+  - 'Put quotes around it: `print("banana")`.'
+solution_code: |
+  print("banana")
