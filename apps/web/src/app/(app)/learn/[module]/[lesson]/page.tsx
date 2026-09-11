@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { LessonView } from "@/components/LessonView";
 import { ApiError, api } from "@/lib/api";
+import { getCurrentUser } from "@/lib/session.server";
 
 export const dynamic = "force-dynamic";
 
@@ -26,12 +27,15 @@ export default async function LessonPage({ params }: Params) {
   // for a missing lesson.
   let lesson;
   let moduleData;
+  let user;
   try {
     // Lesson prose is server-rendered so it is readable immediately and
-    // indexable; only the interactive parts hydrate.
-    [lesson, moduleData] = await Promise.all([
+    // indexable; only the interactive parts hydrate. The session comes from the
+    // request cache the layout already populated, not a second API call.
+    [lesson, moduleData, user] = await Promise.all([
       api.lesson(moduleSlug, lessonSlug),
       api.module(moduleSlug),
+      getCurrentUser(),
     ]);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
@@ -44,6 +48,7 @@ export default async function LessonPage({ params }: Params) {
       moduleSlug={moduleSlug}
       moduleTitle={moduleData.title}
       siblings={moduleData.lessons}
+      signedIn={user !== null}
     />
   );
 }

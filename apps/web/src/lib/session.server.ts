@@ -7,19 +7,22 @@ import "server-only";
  * navigation renders correct on the first paint — no flash of "Sign in" for
  * someone who is already signed in — and saves a round trip on every page load.
  *
- * The cost, stated so it is a decision rather than an accident: reading cookies
- * opts every route that renders the root layout into dynamic rendering, so the
- * marketing page is server-rendered per request instead of static. At MVP scale
- * that is a fair trade for a correct first paint; if the landing page ever
- * needs to be statically served at the edge, the header becomes a separate
- * client island and this moves with it.
+ * Reading cookies opts a route into dynamic rendering, so only the routes that
+ * actually need a session call this: the marketing and auth pages are in a
+ * separate route group whose layout never asks. That keeps the pages a visitor
+ * sees first static and edge-cacheable, which matters on a free hosting tier
+ * where server invocations are metered alongside bandwidth.
+ *
+ * Wrapped in `cache()` so a layout and the page inside it can both ask without
+ * making two requests.
  */
 
+import { cache } from "react";
 import { cookies } from "next/headers";
 
 import type { ApiUser } from "./api";
 
-export async function getCurrentUser(): Promise<ApiUser | null> {
+export const getCurrentUser = cache(async (): Promise<ApiUser | null> => {
   const origin = process.env.API_ORIGIN ?? "http://127.0.0.1:8000";
   const cookieHeader = (await cookies()).toString();
   if (!cookieHeader) return null;
@@ -36,4 +39,4 @@ export async function getCurrentUser(): Promise<ApiUser | null> {
     // every page of the site.
     return null;
   }
-}
+});

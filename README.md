@@ -57,10 +57,19 @@ make dev                                       # web on :3000, API on :8000
 | `make format`       | Auto-format everything                                   |
 | `make content-load` | Reload `content/` into the database                      |
 
-## A note on the Pyodide assets
+## Deployment, and a note on the Pyodide assets
 
-The Python-in-WebAssembly runtime (~14 MB) is copied out of the `pyodide` npm package
-into `apps/web/public/pyodide/` by `make install`, and served from our own origin rather
-than a public CDN. It is generated, not committed. The reasoning — supply-chain surface,
-keeping CI and learners on byte-identical interpreters, and networks that block CDNs — is
-in [`docs/architecture.md`](docs/architecture.md) §1.1.
+The platform is built to run on free hosting tiers. The Python-in-WebAssembly
+runtime is ~14 MB per cold load, which would be essentially the entire bandwidth
+allowance of a free tier on its own, so in production it is fetched from jsDelivr —
+pinned to the exact version the tests graded against, read from the installed npm
+package at build time so it cannot drift.
+
+Local development and CI self-host it instead, from `apps/web/public/pyodide/`,
+because working offline should be possible and CI must not depend on a third
+party being up. Set `PYODIDE_INDEX_URL=/pyodide/` to self-host in production too —
+worth doing if your learners are behind a network that blocks public CDNs.
+
+[`docs/deployment.md`](docs/deployment.md) has the bandwidth arithmetic and the
+free-tier options; [`docs/architecture.md`](docs/architecture.md) §1.1 has the
+trade-off in full, including what self-hosting bought that this gives up.

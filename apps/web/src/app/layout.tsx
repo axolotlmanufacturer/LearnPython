@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 
-import { SessionProvider } from "@/components/SessionProvider";
-import { getCurrentUser } from "@/lib/session.server";
-import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
+
+/**
+ * The root layout deliberately reads nothing per-request — no cookies, no fetch.
+ * That is what lets the marketing and auth pages render statically; the pages
+ * that need a session resolve it in the (app) route group's layout instead.
+ */
 
 export const metadata: Metadata = {
   title: {
@@ -13,9 +16,7 @@ export const metadata: Metadata = {
   description: "Learn Python from zero, in your browser.",
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="flex min-h-full flex-col antialiased">
@@ -25,10 +26,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           Skip to main content
         </a>
-        <SessionProvider initialUser={user}>
-          <SiteHeader />
-          <div className="flex-1">{children}</div>
-        </SessionProvider>
+        {children}
       </body>
     </html>
   );

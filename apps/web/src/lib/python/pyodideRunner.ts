@@ -39,6 +39,21 @@ export interface PyodideRunnerOptions {
  * src/lib/python/worker.js and docs/architecture.md §1.3. */
 const DEFAULT_WORKER_URL = "/python/worker.js";
 
+/**
+ * Where the Pyodide distribution is fetched from.
+ *
+ * Set at build time by next.config.mjs, which pins it to the exact version of
+ * the npm package the content tests graded against. Defaults to jsDelivr so the
+ * platform fits inside a free hosting tier — the distribution is ~14 MB per cold
+ * load, which would otherwise be the whole bandwidth budget. Point
+ * PYODIDE_INDEX_URL at "/pyodide/" to serve it from this origin instead.
+ *
+ * The fallback here is the self-hosted path, so anything rendering outside a
+ * Next build (a unit test, a story) uses the copy on disk rather than reaching
+ * for the network.
+ */
+const DEFAULT_INDEX_URL = process.env.NEXT_PUBLIC_PYODIDE_INDEX_URL || "/pyodide/";
+
 /** Resolve a same-origin path against the page's origin. Left untouched if it
  * is already absolute, and passed through unchanged outside a browser so tests
  * can assert on the value they supplied. */
@@ -70,7 +85,7 @@ export class PyodideRunner implements PythonRunner {
     // a valid base for that inside a worker — it throws where it would have
     // worked on the main thread. Resolving here keeps the callers' relative
     // paths convenient without the worker inheriting the ambiguity.
-    this.indexUrl = absolute(options.indexUrl ?? "/pyodide/");
+    this.indexUrl = absolute(options.indexUrl ?? DEFAULT_INDEX_URL);
     this.harnessUrl = absolute(options.harnessUrl ?? "/python/harness.py");
     const workerUrl = absolute(options.workerUrl ?? DEFAULT_WORKER_URL);
     this.createWorker = options.createWorker ?? (() => new Worker(workerUrl, { type: "module" }));

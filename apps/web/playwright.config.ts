@@ -66,7 +66,14 @@ export default defineConfig({
       url: `http://127.0.0.1:${WEB_PORT}`,
       reuseExistingServer: false,
       timeout: 300_000,
-      env: { API_ORIGIN: `http://127.0.0.1:${API_PORT}` },
+      env: {
+        API_ORIGIN: `http://127.0.0.1:${API_PORT}`,
+        // Self-host the interpreter for the suite. Production fetches it from a
+        // CDN, but CI must not depend on a third party being up to decide
+        // whether the build is green — and the code path under test (worker,
+        // asset resolution, grading) is identical either way.
+        PYODIDE_INDEX_URL: "/pyodide/",
+      },
       stdout: "pipe",
       stderr: "pipe",
     },

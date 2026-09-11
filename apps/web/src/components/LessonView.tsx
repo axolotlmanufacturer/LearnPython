@@ -19,7 +19,6 @@ import { useCallback, useEffect, useState } from "react";
 import { ExerciseCard } from "@/components/ExerciseCard";
 import { Markdown } from "@/components/Markdown";
 import { PythonRunnerProvider } from "@/components/PythonRunnerProvider";
-import { useSession } from "@/components/SessionProvider";
 import { WorkedExample } from "@/components/WorkedExample";
 import { api, type ApiLesson, type ApiLessonSummary } from "@/lib/api";
 
@@ -28,13 +27,15 @@ export function LessonView({
   moduleSlug,
   moduleTitle,
   siblings,
+  signedIn,
 }: {
   lesson: ApiLesson;
   moduleSlug: string;
   moduleTitle: string;
   siblings: ApiLessonSummary[];
+  /** Resolved on the server, so the page renders correct on first paint. */
+  signedIn: boolean;
 }) {
-  const { user } = useSession();
   const [solved, setSolved] = useState<Set<string>>(new Set());
   const [saveFailed, setSaveFailed] = useState(false);
 
@@ -47,16 +48,16 @@ export function LessonView({
 
   // Opening a lesson is what starts it. Nothing to click.
   useEffect(() => {
-    if (!user) return;
+    if (!signedIn) return;
     void api.setLessonProgress(moduleSlug, lesson.slug, "in_progress").catch(() => undefined);
-  }, [user, moduleSlug, lesson.slug]);
+  }, [signedIn, moduleSlug, lesson.slug]);
 
   useEffect(() => {
-    if (!user || !complete) return;
+    if (!signedIn || !complete) return;
     void api
       .setLessonProgress(moduleSlug, lesson.slug, "completed")
       .catch(() => setSaveFailed(true));
-  }, [user, complete, moduleSlug, lesson.slug]);
+  }, [signedIn, complete, moduleSlug, lesson.slug]);
 
   const handleSolved = useCallback((slug: string) => {
     setSolved((previousSolved) => new Set(previousSolved).add(slug));
@@ -64,12 +65,12 @@ export function LessonView({
 
   const handleAttempt = useCallback(
     (slug: string, code: string, passed: boolean) => {
-      if (!user) return;
+      if (!signedIn) return;
       // Best-effort: a learner mid-exercise should never be interrupted because
       // a bookkeeping request failed.
       void api.recordSubmission({ exercise_slug: slug, code, passed }).catch(() => undefined);
     },
-    [user],
+    [signedIn],
   );
 
   return (
@@ -86,7 +87,7 @@ export function LessonView({
 
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">{lesson.title}</h1>
 
-      {total > 0 && <ProgressBar done={solved.size} total={total} signedIn={Boolean(user)} />}
+      {total > 0 && <ProgressBar done={solved.size} total={total} signedIn={signedIn} />}
 
       <article className="mt-8">
         <Markdown>{lesson.content_markdown}</Markdown>
@@ -126,7 +127,7 @@ export function LessonView({
         >
           <span aria-hidden="true">✓ </span>
           Lesson complete.
-          {user
+          {signedIn
             ? " Your progress is saved."
             : " Sign in if you would like your progress kept for next time."}
         </p>

@@ -1,14 +1,18 @@
-"use client";
+/**
+ * The site navigation.
+ *
+ * A server component that is *given* the signed-in learner rather than fetching
+ * one: the marketing pages pass `null` and stay static, while the learning
+ * pages pass the session their layout already resolved. Only the sign-out
+ * control needs the browser, so only that is a client component.
+ */
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
-import { useSession } from "@/components/SessionProvider";
+import { SignOutButton } from "@/components/SignOutButton";
+import type { ApiUser } from "@/lib/api";
 
-export function SiteHeader() {
-  const { user, signOut } = useSession();
-  const router = useRouter();
-
+export function SiteHeader({ user }: { user: ApiUser | null }) {
   return (
     <header className="border-b border-rule">
       <nav
@@ -29,17 +33,7 @@ export function SiteHeader() {
               <span className="hidden text-ink-soft sm:inline" data-testid="signed-in-as">
                 {user.display_name || user.email}
               </span>
-              <button
-                type="button"
-                onClick={async () => {
-                  await signOut();
-                  router.push("/");
-                  router.refresh();
-                }}
-                className="hover:text-brand"
-              >
-                Sign out
-              </button>
+              <SignOutButton />
             </>
           ) : (
             <>

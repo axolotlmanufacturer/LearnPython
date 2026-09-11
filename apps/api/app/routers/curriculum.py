@@ -7,15 +7,21 @@ browser — that is a direct, unavoidable consequence of the in-browser executio
 model in Section 4.1, not an oversight. A learner who opens developer tools can
 read the checks for the exercise they are on.
 
-This is the right trade for a self-directed learning platform: there is no
-credential to game, so the only person affected by looking is the learner. What
-is *not* exposed is the reference solution, which is never loaded into the
-database, and quiz answers, which are checked server-side.
+**Accepted by the product owner: this platform is for learning and issues no
+official assessment.** With no credential at stake, the only person affected by
+looking at the checks is the learner who looked, and an exercise they skipped by
+reading the answer is an exercise they have not learned. That is their call to
+make, not something to engineer against.
 
-If the platform ever issues an assessment that matters — a certificate, a course
-grade — that is the point at which this stops being acceptable, and it is the
-same trigger Section 4.1 names for revisiting the sandboxing model. Recorded
-here rather than discovered later.
+Two things are still withheld, because they cost nothing to withhold and make the
+product better: the reference solution, which is never loaded into the database
+at all, and quiz answers, which are checked server-side. Both would spoil a
+first attempt rather than merely being available to someone who went looking.
+
+The decision above is what makes client-side grading acceptable. If the platform
+ever does issue an assessment that matters — a certificate, a course grade — this
+has to be revisited, and it is the same trigger Section 4.1 names for revisiting
+the sandboxing model.
 """
 
 from __future__ import annotations

@@ -32,41 +32,57 @@ follow from it:
    substituted without touching the lesson or exercise UI.
 3. **The grading harness is Python, not TypeScript.** See §3.
 
-### 1.1 Deviation: self-host the Pyodide distribution; do not load it from a CDN
+### 1.1 Where the Pyodide distribution is fetched from
 
-The brief does not specify where the Pyodide runtime is fetched from, and the common
-default is jsDelivr. We serve it from our own origin instead, copied out of the `pyodide`
-npm package into `apps/web/public/pyodide/` by a `prebuild`/`predev` script.
+**Decided by the product owner: the platform must run on free hosting tiers, so
+the distribution is fetched from a CDN by default.** Self-hosting remains
+supported behind one environment variable. This reverses an earlier decision in
+this document, and both sides of it are kept here because the reasoning on the
+losing side is still true — it was outweighed, not refuted.
 
-Reasoning:
+The deciding number is bandwidth. The distribution is ~14 MB per cold load
+(9.2 MB WASM, 2.5 MB stdlib zip, 1.2 MB glue), against a typical free-tier
+allowance of 100 GB/month. Self-hosted, that allowance is **about 7,000
+first-time learners a month and nothing else** — spent on people who may bounce
+before writing a line of Python. jsDelivr serves the official Pyodide builds free
+and unmetered, so putting the distribution there is the difference between "runs
+on a free tier" and "does not".
 
-- **Supply-chain surface.** The Pyodide payload _is_ the code execution environment. A
-  compromised or substituted CDN asset would be executing in every learner's browser with
-  their session in scope. Serving it from our origin means it is covered by the same
-  integrity and review path as the rest of the bundle, and pinned by `package-lock.json`
-  rather than by a URL.
-- **Version coherence with tests.** The same npm package supplies both the browser
-  runtime and the Node-based test runner (§3). Browser and CI therefore execute the
-  learner's code on byte-identical Pyodide and CPython builds. With a CDN URL, browser
-  and CI versions drift independently and grading could pass in CI and fail for a learner.
-- **Restricted networks.** Some corporate and educational networks — including the
-  environment this repository was developed in — block public CDNs outright. A CDN
-  dependency makes the core feature of the product silently unavailable to those learners.
-- **Future cross-origin isolation.** If we later enable COOP/COEP to use a
-  `SharedArrayBuffer` interrupt buffer (§1.2), same-origin assets need no CORP negotiation.
+What was given up, and how far it is mitigated:
 
-Cost, stated plainly: ~14 MB of static assets to serve (9.2 MB WASM, 2.5 MB stdlib zip),
-versus offloading that bandwidth to a CDN's edge. These are immutable, hash-stable,
-aggressively cacheable files and are lazy-loaded (Section 8), so the cost is one cold
-download per learner per version. The assets are generated, not committed — `public/pyodide/`
-is gitignored.
+- **Supply-chain surface.** The distribution _is_ the code execution environment;
+  a substituted asset would run in every learner's browser with their session in
+  scope. Mitigated, not eliminated: the URL is pinned to an exact version, and
+  that version is read from the installed npm package by `next.config.mjs` at
+  build time rather than written by hand — so the CDN cannot serve an
+  interpreter that CI never graded against, and the pin cannot drift from
+  `package-lock.json`. Residual risk: jsDelivr's own integrity.
+- **Version coherence with tests.** Preserved by the same build-time pin. The
+  npm package still supplies the Node test runner (§3), and the browser is now
+  pinned to that package's version rather than to a floating tag.
+- **Restricted networks.** Not mitigated. Some corporate and school networks —
+  including the environment this repository was developed in — block public CDNs
+  outright, and learners behind them will see the runtime fail to start. They get
+  an explanation rather than a blank pane, but they cannot run code. Such a
+  deployment sets `PYODIDE_INDEX_URL=/pyodide/` and accepts the bandwidth.
+- **Future cross-origin isolation.** If COOP/COEP is ever enabled for a
+  `SharedArrayBuffer` interrupt buffer (§1.2), CDN assets need correct CORP
+  headers where same-origin assets would not. A reason to self-host on the day
+  that happens, not before.
 
-**Open item for the product owner (Track B, Phase 7):** third-party wheels
-(`numpy`, `pandas`, `scipy`, `matplotlib`) are _not_ in the npm package and are normally
-fetched by `micropip` from the Pyodide CDN at runtime. Track B therefore either
-re-introduces a CDN dependency or requires vendoring those wheels into our own origin.
-Vendoring is the consistent choice, and it is a real download-size decision
-(tens of MB), not a silent one. This is flagged now rather than discovered in Phase 7.
+`PYODIDE_INDEX_URL` controls both halves at once: unset, the build skips copying
+14 MB it will never serve; set to `/pyodide/`, the build copies the distribution
+and the app fetches it from our origin. Local development, unit tests and the
+end-to-end suite all self-host — working offline should be possible, and CI must
+not depend on a third party being up to decide whether the build is green. The
+code path exercised is identical either way. See `deployment.md`.
+
+**Still open for Track B (Phase 7):** third-party wheels (`numpy`, `pandas`,
+`scipy`, `matplotlib`) are not in the npm package and are fetched by `micropip`
+at runtime. With the CDN as the default this is no longer a conflict — the wheels
+come from the same place as the interpreter — but it is still tens of megabytes
+per learner who reaches Track B, and still needs the availability spike the brief
+asks for at the start of Phase 7.
 
 ### 1.2 Timeout mechanism: worker termination, not an interrupt buffer
 
@@ -265,6 +281,21 @@ Recorded so they are visible decisions rather than omissions:
 - OAuth providers (§5).
 - Spaced repetition, hints, gamification, capstone rubrics — Section 6 Phase 2 features;
   the schema accommodates them (`QuizItem`/`QuizAttempt`, `Exercise.hints`).
-- Track B content and its wheel-vendoring decision (§1.1).
+- Track B content, and the `micropip` availability spike the brief asks for at the start
+  of Phase 7 (§1.1).
 - `SharedArrayBuffer` interrupt buffer (§1.2).
 - Multi-file exercises and real filesystem exercises — the Section 4.1 revisit triggers.
+- Persisting a learner's in-progress code between visits. A real want, but it needs a
+  considered answer about where drafts live and for how long; half-doing it would create
+  an expectation the storage does not meet.
+
+## 8. Settled by the product owner
+
+Questions this document previously left open, and how they were answered:
+
+- **No official assessment.** The platform teaches; it certifies nothing. This is what
+  makes client-side grading acceptable, since the checks necessarily reach the browser —
+  see the note at the top of `app/routers/curriculum.py`.
+- **Must run on free hosting tiers.** This decided §1.1 in favour of CDN delivery for the
+  Pyodide distribution, and shaped the route-group split that keeps the marketing pages
+  static. See `deployment.md`.

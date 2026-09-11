@@ -12,12 +12,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useSession } from "@/components/SessionProvider";
 import { ApiError, api } from "@/lib/api";
 
 export function AuthForm({ mode }: { mode: "sign-up" | "sign-in" }) {
   const router = useRouter();
-  const { refresh } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -40,7 +38,6 @@ export function AuthForm({ mode }: { mode: "sign-up" | "sign-in" }) {
       } else {
         await api.login({ email, password });
       }
-      await refresh();
       router.push("/learn");
       router.refresh();
     } catch (err) {

@@ -115,7 +115,28 @@ function apiBase(): string {
   return "";
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+/**
+ * How long a curriculum response may be reused.
+ *
+ * Curriculum is loaded from files at deploy time and does not change in between,
+ * so re-reading it from the database on every page render is wasted work — and
+ * on a free database tier, which caps connections and may sleep when idle, it is
+ * the difference between a snappy lesson page and a cold start. Auth and
+ * progress are never cached: those are per-learner and change as they work.
+ *
+ * Five minutes rather than forever so a content reload reaches learners without
+ * a redeploy.
+ */
+const CURRICULUM_REVALIDATE_SECONDS = 300;
+
+interface RequestOptions extends RequestInit {
+  /** Seconds this response may be reused. Omit for per-request data. */
+  revalidate?: number;
+}
+
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { revalidate, ...init } = options;
+
   const response = await fetch(`${apiBase()}${path}`, {
     ...init,
     credentials: "include",
@@ -123,7 +144,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       ...(init.body ? { "Content-Type": "application/json" } : {}),
       ...init.headers,
     },
-    cache: "no-store",
+    ...(revalidate === undefined ? { cache: "no-store" as const } : { next: { revalidate } }),
   });
 
   if (!response.ok) {
@@ -157,15 +178,21 @@ export const api = {
 
   me: () => request<ApiUser>("/api/auth/me"),
 
-  // curriculum
-  tracks: () => request<ApiTrack[]>("/api/curriculum/tracks"),
+  // curriculum — cacheable, because it only changes when content is reloaded
+  tracks: () =>
+    request<ApiTrack[]>("/api/curriculum/tracks", {
+      revalidate: CURRICULUM_REVALIDATE_SECONDS,
+    }),
 
   module: (moduleSlug: string) =>
-    request<ApiModule>(`/api/curriculum/modules/${encodeURIComponent(moduleSlug)}`),
+    request<ApiModule>(`/api/curriculum/modules/${encodeURIComponent(moduleSlug)}`, {
+      revalidate: CURRICULUM_REVALIDATE_SECONDS,
+    }),
 
   lesson: (moduleSlug: string, lessonSlug: string) =>
     request<ApiLesson>(
       `/api/curriculum/modules/${encodeURIComponent(moduleSlug)}/lessons/${encodeURIComponent(lessonSlug)}`,
+      { revalidate: CURRICULUM_REVALIDATE_SECONDS },
     ),
 
   // progress
