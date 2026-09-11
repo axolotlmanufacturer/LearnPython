@@ -1,0 +1,42 @@
+slug: predict-comparisons
+lesson: true-and-false
+position: 1
+title: Predict the six answers
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  Six comparisons. Write down all six answers before you run it.
+
+  Line 5 is the one to think about carefully: is it asking what you think it is
+  asking?
+starter_code: |
+  day = "Friday"
+
+  print(day == "Friday")
+  print(day != "Monday")
+  print(day == "Saturday" or day == "Sunday")
+  print(day == "Saturday" or "Sunday")
+  print(len(day) > 5 and day.startswith("F"))
+  print(not day == "Friday")
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      True
+      True
+      False
+      Sunday
+      True
+      False
+hints:
+  - 'Line 6 is `(day == "Saturday") or ("Sunday")`. Python returns the first side that counts as true — and a non-empty string does.'
+  - "`or` gives back a value, not always `True`. That is why the fourth answer is a word."
+solution_code: |
+  day = "Friday"
+
+  print(day == "Friday")
+  print(day != "Monday")
+  print(day == "Saturday" or day == "Sunday")
+  print(day == "Saturday" or "Sunday")
+  print(len(day) > 5 and day.startswith("F"))
+  print(not day == "Friday")

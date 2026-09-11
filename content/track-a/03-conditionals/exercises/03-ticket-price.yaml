@@ -1,0 +1,60 @@
+slug: ticket-price
+lesson: if-statements
+position: 1
+title: Work out a ticket price
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  A cinema charges by age:
+
+  - under 5: free (`0`)
+  - 5 to 15: `6`
+  - 16 to 64: `11`
+  - 65 and over: `8`
+
+  Replace `UPPER_CHILD_AGE` and `UPPER_ADULT_AGE` with the right numbers, and
+  the `...` with the last price. With the age set to 8, the answer is `6`.
+
+  Use one `if`/`elif`/`else` chain, not four separate `if` statements — you want
+  exactly one price, not several.
+starter_code: |
+  age = 8
+
+  if age < 5:
+      price = 0
+  elif age <= UPPER_CHILD_AGE:
+      price = 6
+  elif age <= UPPER_ADULT_AGE:
+      price = 11
+  else:
+      price = ...
+
+  print(price)
+checks:
+  - kind: expr
+    label: An 8-year-old pays 6
+    expression: price
+    expected: 6
+  - kind: stdout
+    label: The price is printed
+    expected: "6"
+  - kind: source
+    label: One decision, made with elif
+    require_ast:
+      - If
+hints:
+  - Each `elif` only sees the ages the branches above did not catch, so you do not need to repeat the lower bound.
+  - "Once `age < 5` is ruled out, `age <= 15` is enough for the second branch."
+solution_code: |
+  age = 8
+
+  if age < 5:
+      price = 0
+  elif age <= 15:
+      price = 6
+  elif age <= 64:
+      price = 11
+  else:
+      price = 8
+
+  print(price)

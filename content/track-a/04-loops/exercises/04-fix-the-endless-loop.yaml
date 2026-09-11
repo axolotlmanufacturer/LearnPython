@@ -1,0 +1,43 @@
+slug: fix-the-endless-loop
+lesson: while-loops
+position: 1
+title: Fix the loop that never ends
+bloom: analyze
+scaffold_level: debug
+prompt_markdown: |
+  This loop is meant to print `5 4 3 2 1` on separate lines and then `Liftoff!`.
+
+  **Run it first.** It will print a great many fives and then be stopped for
+  you — nothing will break, and the message you get is worth reading.
+
+  Then work out which of the three things every `while` loop needs is missing,
+  and add it.
+starter_code: |
+  count = 5
+
+  while count > 0:
+      print(count)
+
+  print("Liftoff!")
+checks:
+  - kind: stdout
+    label: Counts down from 5 and lifts off
+    expected: |
+      5
+      4
+      3
+      2
+      1
+      Liftoff!
+hints:
+  - The condition tests `count`. Look for the line inside the loop that changes it.
+  - There isn't one — so `count` is 5 on every check, forever.
+  - "Add `count -= 1` as the last line inside the loop."
+solution_code: |
+  count = 5
+
+  while count > 0:
+      print(count)
+      count -= 1
+
+  print("Liftoff!")

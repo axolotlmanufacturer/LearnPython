@@ -1,0 +1,83 @@
+items:
+  - slug: recall-input-is-text
+    position: 1
+    kind: multiple_choice
+    reviews_module_slug: strings
+    prompt_markdown: |
+      From Module 2 — someone types `18`. Why does this print `Too young.`?
+
+      ```python
+      age = input("Age? ")
+      if age < 21:
+          print("Too young.")
+      ```
+    options:
+      - It does not — it stops with a TypeError, because `age` is text
+      - Because 18 is less than 21
+      - Because `input()` rounds down
+      - Because `<` does not work on numbers
+    answer: It does not — it stops with a TypeError, because `age` is text
+    explanation_markdown: >-
+      `input()` always returns a string, and Python will not rank a string
+      against a number. The fix is `int(input("Age? "))`. This is the single most
+      common bug in a beginner's first conditional.
+
+  - slug: recall-equality-vs-assignment
+    position: 2
+    kind: multiple_choice
+    reviews_module_slug: values
+    prompt_markdown: |
+      From Module 1 — which of these asks a question rather than storing a value?
+    options:
+      - "`score == 10`"
+      - "`score = 10`"
+      - Both do the same thing
+      - Neither
+    answer: "`score == 10`"
+    explanation_markdown: >-
+      A single `=` stores; a double `==` compares. Writing `if score = 10:` is a
+      syntax error, and Python says so specifically because the slip is so common.
+
+  - slug: elif-runs-once
+    position: 3
+    kind: predict_output
+    prompt_markdown: What does this print?
+    code: |
+      score = 85
+
+      if score >= 70:
+          print("Distinction")
+      elif score >= 50:
+          print("Pass")
+    options:
+      - "`Distinction`"
+      - "`Distinction` and `Pass`"
+      - "`Pass`"
+      - Nothing
+    answer: "`Distinction`"
+    explanation_markdown: >-
+      Exactly one branch of an if/elif chain runs. Python stops at the first true
+      condition and never looks at the rest. Written as two separate `if`
+      statements, both would print — which is the practical difference between
+      `elif` and a second `if`.
+
+  - slug: or-needs-two-comparisons
+    position: 4
+    kind: predict_output
+    prompt_markdown: What does this print?
+    code: |
+      day = "Monday"
+      if day == "Saturday" or "Sunday":
+          print("Weekend")
+      else:
+          print("Weekday")
+    options:
+      - "`Weekend`"
+      - "`Weekday`"
+      - Nothing
+      - A TypeError
+    answer: "`Weekend`"
+    explanation_markdown: >-
+      Python reads this as `(day == "Saturday") or ("Sunday")`. A non-empty
+      string counts as true on its own, so the condition is true whatever `day`
+      holds. Say the comparison twice: `day == "Saturday" or day == "Sunday"`.

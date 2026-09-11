@@ -1,0 +1,98 @@
+items:
+  - slug: recall-elif-once
+    position: 1
+    kind: predict_output
+    reviews_module_slug: conditionals
+    prompt_markdown: |
+      From Module 3 — how many lines does this print?
+    code: |
+      for n in range(4):
+          if n > 1:
+              print("big")
+          elif n > 0:
+              print("small")
+    options:
+      - "3"
+      - "4"
+      - "2"
+      - "1"
+    answer: "3"
+    explanation_markdown: >-
+      `n` takes 0, 1, 2, 3. For 0 neither branch is true, so nothing prints. For
+      1 the `elif` prints `small`. For 2 and 3 the `if` prints `big`. Three lines
+      in total — a loop and a conditional together, which is most real code.
+
+  - slug: recall-string-index
+    position: 2
+    kind: multiple_choice
+    reviews_module_slug: strings
+    prompt_markdown: |
+      From Module 2 — `word = "python"`. What is the last valid position?
+    options:
+      - "5"
+      - "6"
+      - "7"
+      - "0"
+    answer: "5"
+    explanation_markdown: >-
+      Six characters, positions 0 to 5. The last valid position is always
+      `len(word) - 1`. This is the same counting that makes `range(6)` produce 0
+      to 5 — one rule, showing up in two places.
+
+  - slug: range-stops-before
+    position: 3
+    kind: predict_output
+    prompt_markdown: How many numbers does `range(1, 10)` produce?
+    options:
+      - "9"
+      - "10"
+      - "11"
+      - "8"
+    answer: "9"
+    explanation_markdown: >-
+      It starts at 1 and stops *before* 10, so it gives 1 through 9 — nine
+      numbers. To include 10 you would ask for `range(1, 11)`.
+
+  - slug: accumulator-placement
+    position: 4
+    kind: predict_output
+    prompt_markdown: What does this print, and why is it wrong?
+    code: |
+      for number in range(1, 4):
+          total = 0
+          total += number
+      print(total)
+    options:
+      - "`3` — the accumulator is reset on every pass"
+      - "`6` — it adds 1, 2 and 3"
+      - "`0`"
+      - A NameError
+    answer: "`3` — the accumulator is reset on every pass"
+    explanation_markdown: >-
+      `total = 0` is inside the loop, so each pass throws away what was
+      accumulated and starts again. Only the last number survives. The line
+      belongs *before* the loop — this is the most common accumulator bug there
+      is.
+
+  - slug: three-parts-of-a-while
+    position: 5
+    kind: multiple_choice
+    prompt_markdown: |
+      Why does this never end?
+
+      ```python
+      n = 10
+      while n != 0:
+          n -= 3
+      ```
+    options:
+      - "`n` goes 10, 7, 4, 1, -2 — it steps straight over 0"
+      - "`n` is never changed"
+      - "`!=` is not a valid comparison"
+      - It does end, after 10 passes
+    answer: "`n` goes 10, 7, 4, 1, -2 — it steps straight over 0"
+    explanation_markdown: >-
+      The loop has all three parts — a starting value, a condition, and a change
+      — and still never ends, because the condition waits for one exact value the
+      loop never lands on. `while n > 0` would have been safe. Prefer `<` and `>`
+      over `==` and `!=` in a loop condition.

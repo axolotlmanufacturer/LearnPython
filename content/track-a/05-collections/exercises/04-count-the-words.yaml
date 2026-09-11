@@ -1,0 +1,54 @@
+slug: count-the-words
+lesson: dictionaries
+position: 2
+title: Count how often each word appears
+bloom: create
+scaffold_level: write_from_spec
+prompt_markdown: |
+  Count how many times each word appears in `phrase`, and store the result in a
+  dictionary called `counts` — word as the key, count as the value.
+
+  For `"the cat sat on the mat the end"` the result is:
+
+  ```
+  {'the': 3, 'cat': 1, 'sat': 1, 'on': 1, 'mat': 1, 'end': 1}
+  ```
+
+  `phrase.split()` gives you a list of the words — that is the one new piece.
+  Everything else is a loop, a dictionary, and deciding what to do the first time
+  you meet a word.
+
+  Print `counts` at the end.
+starter_code: |
+  phrase = "the cat sat on the mat the end"
+
+  # Build `counts`, then print it.
+checks:
+  - kind: expr
+    label: Every word is counted correctly
+    expression: counts
+    expected:
+      the: 3
+      cat: 1
+      sat: 1
+      on: 1
+      mat: 1
+      end: 1
+  - kind: source
+    label: Counted with a loop, not a library
+    require_ast:
+      - For
+    forbid_text:
+      - Counter
+hints:
+  - "Start with `counts = {}` and loop over `phrase.split()`."
+  - The first time you see a word it is not in the dictionary yet, so you cannot add 1 to something that is not there.
+  - "`counts[word] = counts.get(word, 0) + 1` handles both the first time and every time after."
+solution_code: |
+  phrase = "the cat sat on the mat the end"
+
+  counts = {}
+  for word in phrase.split():
+      counts[word] = counts.get(word, 0) + 1
+
+  print(counts)

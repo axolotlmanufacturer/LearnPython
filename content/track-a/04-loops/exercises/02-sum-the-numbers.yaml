@@ -1,0 +1,46 @@
+slug: sum-the-numbers
+lesson: for-loops
+position: 2
+title: Add up the numbers 1 to 10
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  Add up every whole number from 1 to 10 inclusive, and print the total. The
+  answer is `55`.
+
+  Two blanks. Watch the second one carefully: `range` stops *before* the number
+  you give it, so reaching 10 means asking for one more than that.
+
+  Solve it with a loop — `sum()` would do it in one line, but the loop is the
+  thing being practised.
+starter_code: |
+  total = ...
+
+  for number in range(1, ...):
+      total += number
+
+  print(total)
+checks:
+  - kind: expr
+    label: total is 55
+    expression: total
+    expected: 55
+  - kind: stdout
+    label: The total is printed
+    expected: "55"
+  - kind: source
+    label: Uses a for loop rather than sum()
+    require_ast:
+      - For
+    forbid_text:
+      - sum(
+hints:
+  - An accumulator starts at 0, before the loop.
+  - "To include 10, the range has to stop before 11."
+solution_code: |
+  total = 0
+
+  for number in range(1, 11):
+      total += number
+
+  print(total)

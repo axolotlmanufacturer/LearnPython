@@ -1,0 +1,44 @@
+slug: stock-lookup
+lesson: dictionaries
+position: 1
+title: Look up stock safely
+bloom: apply
+scaffold_level: modify
+prompt_markdown: |
+  This program works for items that are in the dictionary, and stops with a
+  `KeyError` for anything else. Run it and read the error first.
+
+  Change it so a missing item reports `0` instead of stopping. The output should
+  be:
+
+  ```
+  apples: 12
+  pears: 0
+  ```
+
+  Do not add the missing item to the dictionary, and do not wrap anything in an
+  `if` — there is a method on dictionaries that does exactly this job.
+starter_code: |
+  stock = {"apples": 12, "bananas": 4}
+
+  for item in ["apples", "pears"]:
+      print(f"{item}: {stock[item]}")
+checks:
+  - kind: stdout
+    label: A missing item reports zero
+    expected: |
+      apples: 12
+      pears: 0
+  - kind: source
+    label: Uses .get() rather than a conditional
+    require_text:
+      - .get(
+hints:
+  - "`stock[item]` stops the program when the key is missing."
+  - "`stock.get(item)` returns `None` instead — and it takes a second argument for what to return instead."
+  - "`stock.get(item, 0)`"
+solution_code: |
+  stock = {"apples": 12, "bananas": 4}
+
+  for item in ["apples", "pears"]:
+      print(f"{item}: {stock.get(item, 0)}")

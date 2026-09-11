@@ -1,0 +1,54 @@
+slug: fix-the-order
+lesson: if-statements
+position: 2
+title: Find the branch that never runs
+bloom: evaluate
+scaffold_level: debug
+prompt_markdown: |
+  This program is supposed to describe a temperature. It runs without any error,
+  and it is wrong: it reports `Warm` for 35 degrees.
+
+  Nothing is misspelled and no line is missing. Work out why the `Hot` branch is
+  never reached, and fix it.
+
+  With the temperature at 35, it should print:
+
+  ```
+  Hot
+  ```
+
+  Do not add extra branches — reorder what is there.
+starter_code: |
+  temperature = 35
+
+  if temperature > 15:
+      print("Warm")
+  elif temperature > 30:
+      print("Hot")
+  elif temperature > 0:
+      print("Cold")
+  else:
+      print("Freezing")
+checks:
+  - kind: stdout
+    label: 35 degrees reports Hot
+    expected: Hot
+  - kind: source
+    label: Still a single elif chain
+    require_ast:
+      - If
+hints:
+  - Python checks the branches in order and stops at the first true one. Which branch does 35 hit first?
+  - Every temperature above 30 is also above 15, so the first branch swallows them all.
+  - In a chain of ranges, put the narrowest condition first.
+solution_code: |
+  temperature = 35
+
+  if temperature > 30:
+      print("Hot")
+  elif temperature > 15:
+      print("Warm")
+  elif temperature > 0:
+      print("Cold")
+  else:
+      print("Freezing")

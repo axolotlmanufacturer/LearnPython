@@ -1,0 +1,23 @@
+slug: loops
+track: track-a
+position: 4
+title: Repeating work
+summary_markdown: >-
+  How to make a program do something many times without writing it out many
+  times. `for` when you know what to work through, `while` when you are waiting
+  for a condition to change — and a clear-eyed look at the loop that never ends,
+  which every beginner writes and which this platform is built to survive.
+
+objectives:
+  - text: Explain the difference between a for loop and a while loop
+    bloom: understand
+  - text: Predict how many times a given loop runs, including off-by-one cases
+    bloom: understand
+  - text: Use range() to repeat a fixed number of times, and iterate over a string
+    bloom: apply
+  - text: Accumulate a running total or count across the iterations of a loop
+    bloom: apply
+  - text: Recognise a loop that never ends, and identify what should have changed
+    bloom: analyze
+  - text: Choose between break, continue, and a better condition
+    bloom: evaluate

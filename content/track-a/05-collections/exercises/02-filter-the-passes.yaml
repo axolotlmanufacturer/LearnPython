@@ -1,0 +1,50 @@
+slug: filter-the-passes
+lesson: lists
+position: 2
+title: Collect the passing scores
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  Build a list called `passes` holding only the scores of 50 or more, in the
+  order they appear, then print it.
+
+  The answer is `[70, 82, 91, 55]`.
+
+  Three blanks: what the list starts as, what the condition is, and how an item
+  gets added.
+starter_code: |
+  scores = [70, 82, 45, 91, 12, 55]
+
+  passes = ...
+
+  for score in scores:
+      if ...:
+          passes...
+
+  print(passes)
+checks:
+  - kind: expr
+    label: passes holds the four scores of 50 or more
+    expression: passes
+    expected: [70, 82, 91, 55]
+  - kind: stdout
+    label: The list is printed
+    expected: "[70, 82, 91, 55]"
+  - kind: source
+    label: Built with a loop
+    require_ast:
+      - For
+hints:
+  - A list you are about to fill starts empty — `[]`.
+  - '"50 or more" is `score >= 50`.'
+  - "`passes.append(score)` adds to the end. Call it; do not assign its result."
+solution_code: |
+  scores = [70, 82, 45, 91, 12, 55]
+
+  passes = []
+
+  for score in scores:
+      if score >= 50:
+          passes.append(score)
+
+  print(passes)

@@ -1,0 +1,48 @@
+slug: first-multiple
+lesson: while-loops
+position: 2
+title: Find the first multiple over a limit
+bloom: create
+scaffold_level: write_from_spec
+prompt_markdown: |
+  Find the smallest multiple of `step` that is strictly greater than `limit`,
+  store it in `answer`, and print it.
+
+  With `step = 7` and `limit = 100`, the answer is `105`.
+
+  This is a genuine `while` job: you do not know in advance how many multiples
+  you will need to step through.
+
+  Be careful with your condition — a loop that steps past the value it is waiting
+  for never stops. If your program hangs, it will be stopped after a few seconds
+  and you can fix it.
+starter_code: |
+  step = 7
+  limit = 100
+
+  # Work out `answer`, then print it.
+checks:
+  - kind: expr
+    label: answer is 105
+    expression: answer
+    expected: 105
+  - kind: stdout
+    label: The answer is printed
+    expected: "105"
+  - kind: source
+    label: Uses a while loop
+    require_ast:
+      - While
+hints:
+  - "Start at `step` itself and keep adding `step` while you are not past the limit."
+  - "`answer = step`, then `while answer <= limit:` with `answer += step` inside."
+  - "Use `<=` rather than `!=` — a condition that tests for one exact value can be stepped straight over."
+solution_code: |
+  step = 7
+  limit = 100
+
+  answer = step
+  while answer <= limit:
+      answer += step
+
+  print(answer)

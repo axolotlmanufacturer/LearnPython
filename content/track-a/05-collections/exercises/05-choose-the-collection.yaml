@@ -1,0 +1,52 @@
+slug: choose-the-collection
+lesson: dictionaries
+position: 3
+title: Pick the right collection
+bloom: evaluate
+scaffold_level: write_from_spec
+prompt_markdown: |
+  A reading log records the same book more than once. Three questions about it,
+  each best answered by a different collection:
+
+  1. `unique_count` — how many **different** books appear.
+  2. `first_book` — the title read first, keeping the original order.
+  3. `pages_for_dune` — how many pages *Dune* has, from the `page_counts` lookup,
+     or `0` if it is not listed.
+
+  The answers are `3`, `"Dune"`, and `412`.
+
+  Each one should use the collection that suits it, rather than looping over the
+  list three times.
+starter_code: |
+  log = ["Dune", "Emma", "Dune", "Ulysses", "Emma"]
+  page_counts = {"Dune": 412, "Emma": 474}
+
+  # Work out unique_count, first_book and pages_for_dune.
+checks:
+  - kind: expr
+    label: unique_count is 3
+    expression: unique_count
+    expected: 3
+  - kind: expr
+    label: first_book is Dune
+    expression: first_book
+    expected: Dune
+  - kind: expr
+    label: pages_for_dune is 412
+    expression: pages_for_dune
+    expected: 412
+hints:
+  - "Counting *different* items is what a set is for: `len(set(log))`."
+  - Order is preserved by the list itself, so the first book read is just the first item.
+  - 'A lookup with a fallback is `page_counts.get("Dune", 0)`.'
+solution_code: |
+  log = ["Dune", "Emma", "Dune", "Ulysses", "Emma"]
+  page_counts = {"Dune": 412, "Emma": 474}
+
+  unique_count = len(set(log))
+  first_book = log[0]
+  pages_for_dune = page_counts.get("Dune", 0)
+
+  print(unique_count)
+  print(first_book)
+  print(pages_for_dune)

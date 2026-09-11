@@ -1,0 +1,46 @@
+slug: count-vowels
+lesson: for-loops
+position: 3
+title: Count the vowels
+bloom: apply
+scaffold_level: write_from_spec
+prompt_markdown: |
+  Count how many vowels are in `phrase` and print the count. `aeiou` count as
+  vowels; ignore `y`.
+
+  For `"the quick brown fox"` the answer is `5`.
+
+  Watch for capitals: the phrase here is all lower case, but a solution that
+  handles `"The Quick"` too is a better solution.
+
+  Store the answer in a variable called `count`.
+starter_code: |
+  phrase = "the quick brown fox"
+
+  # Count the vowels in `count`, then print it.
+checks:
+  - kind: expr
+    label: count is 5
+    expression: count
+    expected: 5
+  - kind: stdout
+    label: The count is printed
+    expected: "5"
+  - kind: source
+    label: Uses a loop
+    require_ast:
+      - For
+hints:
+  - "Start with `count = 0` before the loop."
+  - "Loop over the phrase one character at a time: `for letter in phrase:`."
+  - '`if letter in "aeiou":` asks whether that character is one of the five.'
+  - "For capitals too, compare `letter.lower()` instead of `letter`."
+solution_code: |
+  phrase = "the quick brown fox"
+
+  count = 0
+  for letter in phrase:
+      if letter.lower() in "aeiou":
+          count += 1
+
+  print(count)

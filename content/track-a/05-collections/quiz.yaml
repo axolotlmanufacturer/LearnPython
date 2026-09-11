@@ -1,0 +1,94 @@
+items:
+  - slug: recall-accumulator
+    position: 1
+    kind: predict_output
+    reviews_module_slug: loops
+    prompt_markdown: |
+      From Module 4 — what does this print?
+    code: |
+      names = ["Ada", "Alan", "Grace"]
+      initials = ""
+      for name in names:
+          initials += name[0]
+      print(initials)
+    options:
+      - "`AAG`"
+      - "`Ada Alan Grace`"
+      - "`G`"
+      - "`AdaAlanGrace`"
+    answer: "`AAG`"
+    explanation_markdown: >-
+      The accumulator pattern from Module 4, applied to text instead of numbers.
+      `name[0]` is the first character of each name, and `+=` joins it on. Start
+      before the loop, update inside, use after.
+
+  - slug: recall-mutability
+    position: 2
+    kind: multiple_choice
+    reviews_module_slug: strings
+    prompt_markdown: |
+      From Module 2 — which of these actually changes the thing it is called on?
+    options:
+      - "`my_list.append(4)`"
+      - "`my_string.upper()`"
+      - "`my_string.strip()`"
+      - '`my_string.replace("a", "b")`'
+    answer: "`my_list.append(4)`"
+    explanation_markdown: >-
+      Strings never change — every string method builds a new one, which you have
+      to keep. Lists do change in place, and `.append()` returns `None`. That is
+      the practical difference between the two, and it cuts both ways: assigning
+      the result of `.append()` throws your list away.
+
+  - slug: index-vs-get
+    position: 3
+    kind: predict_output
+    prompt_markdown: What does this print?
+    code: |
+      ages = {"Ada": 36}
+      print(ages.get("Alan"))
+    options:
+      - "`None`"
+      - A KeyError
+      - "`0`"
+      - "`36`"
+    answer: "`None`"
+    explanation_markdown: >-
+      `.get()` returns `None` for a missing key instead of stopping the program;
+      `ages["Alan"]` would have raised a KeyError. Pass a second argument —
+      `ages.get("Alan", 0)` — when you want a more useful fallback than `None`.
+
+  - slug: in-checks-keys
+    position: 4
+    kind: predict_output
+    prompt_markdown: What does this print?
+    code: |
+      ages = {"Ada": 36}
+      print(36 in ages)
+    options:
+      - "`False`"
+      - "`True`"
+      - A KeyError
+      - "`36`"
+    answer: "`False`"
+    explanation_markdown: >-
+      `in` on a dictionary looks at the keys, never the values. To ask about
+      values you would write `36 in ages.values()`.
+
+  - slug: which-collection
+    position: 5
+    kind: multiple_choice
+    prompt_markdown: |
+      You need to know how many *different* email addresses appear in a long
+      list, where many repeat. What is the least work?
+    options:
+      - "`len(set(addresses))`"
+      - Loop over the list, checking each one against a second list
+      - Sort the list first, then count the changes
+      - Put them in a dictionary with the count as the value
+    answer: "`len(set(addresses))`"
+    explanation_markdown: >-
+      Removing duplicates is exactly what a set is for, and it makes the question
+      a one-liner. The other three all work; they are just a great deal more code
+      for the same answer. Choosing the right collection usually shortens
+      everything that comes after.

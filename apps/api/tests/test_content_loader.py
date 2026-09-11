@@ -296,3 +296,58 @@ def test_an_unset_tolerance_is_dropped():
     exercise.checks = [CallCheck(kind="call", label="w", function="f", expected=1)]
 
     assert "tolerance" not in harness_payload(exercise)[0]
+
+
+# -------------------------------------------- YAML dialect (cross-parser)
+
+
+def test_yaml_11_boolean_words_stay_strings(tmp_path):
+    """`on`, `off`, `yes` and `no` are strings, not booleans.
+
+    PyYAML implements YAML 1.1, where those four words are booleans; the
+    JavaScript parser the content tests read the same files with implements YAML
+    1.2, where they are strings. If the two disagree, the halves of the content
+    pipeline see different data — and the symptom is bizarre: a word-count
+    exercise containing the word "on" loses that key, grows a `True` one, passes
+    the content test, and crashes the database load.
+    """
+    write_tracks(tmp_path)
+    module_dir = write_module(tmp_path)
+    write_lesson(module_dir)
+    write_exercise(
+        module_dir,
+        checks=[
+            {
+                "kind": "expr",
+                "label": "The word counts are right",
+                "expression": "counts",
+                "expected": {"on": 1, "off": 2, "yes": 3, "no": 4, "the": 5},
+            }
+        ],
+    )
+
+    curriculum = load_curriculum(tmp_path)
+
+    check = curriculum.modules[0].lessons[0].exercises[0].checks[0]
+    assert check.expected == {"on": 1, "off": 2, "yes": 3, "no": 4, "the": 5}
+
+
+def test_real_booleans_are_still_booleans(tmp_path):
+    write_tracks(tmp_path)
+    module_dir = write_module(tmp_path)
+    write_lesson(module_dir)
+    write_exercise(
+        module_dir,
+        checks=[
+            {
+                "kind": "expr",
+                "label": "The flag is set",
+                "expression": "flag",
+                "expected": True,
+            }
+        ],
+    )
+
+    curriculum = load_curriculum(tmp_path)
+
+    assert curriculum.modules[0].lessons[0].exercises[0].checks[0].expected is True

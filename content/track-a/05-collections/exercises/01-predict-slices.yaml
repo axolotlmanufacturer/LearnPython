@@ -1,0 +1,39 @@
+slug: predict-slices
+lesson: lists
+position: 1
+title: Predict the indexing and slicing
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  Five lines. Write down all five answers before you run it.
+
+  The last one is the one people get wrong: does `.append()` give you back the
+  new list?
+starter_code: |
+  colours = ["red", "green", "blue", "yellow"]
+
+  print(colours[1])
+  print(colours[-1])
+  print(colours[1:3])
+  print(colours[:2])
+  print(colours.append("pink"))
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      green
+      yellow
+      ['green', 'blue']
+      ['red', 'green']
+      None
+hints:
+  - Positions start at 0, and a slice stops before the second number.
+  - "`.append()` changes the list in place and hands back nothing — which prints as `None`."
+solution_code: |
+  colours = ["red", "green", "blue", "yellow"]
+
+  print(colours[1])
+  print(colours[-1])
+  print(colours[1:3])
+  print(colours[:2])
+  print(colours.append("pink"))

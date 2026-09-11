@@ -1,0 +1,61 @@
+slug: write-the-conditions
+lesson: true-and-false
+position: 2
+title: Write the conditions
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  Replace each `...` with a condition, using the variables above it.
+
+  - `is_teenager` — the age is at least 13 **and** at most 19
+  - `is_weekend` — the day is Saturday **or** Sunday
+  - `is_valid_score` — the score is between 0 and 100, both allowed
+
+  Each one should end up holding `True` or `False`, not a number or a word. Work
+  them out from the variables rather than typing the answer.
+starter_code: |
+  age = 15
+  day = "Sunday"
+  score = 87
+
+  is_teenager = ...
+  is_weekend = ...
+  is_valid_score = ...
+
+  print(is_teenager)
+  print(is_weekend)
+  print(is_valid_score)
+checks:
+  - kind: expr
+    label: is_teenager is True for 15
+    expression: is_teenager
+    expected: true
+  - kind: expr
+    label: is_weekend is True for Sunday
+    expression: is_weekend
+    expected: true
+  - kind: expr
+    label: is_valid_score is True for 87
+    expression: is_valid_score
+    expected: true
+  - kind: source
+    label: The conditions are worked out, not typed in
+    forbid_text:
+      - "= True"
+      - "= False"
+hints:
+  - '"At least 13" is `age >= 13`. Join two comparisons with `and`.'
+  - 'For the day, say the comparison twice: `day == "Saturday" or day == "Sunday"`.'
+  - "`0 <= score <= 100` is allowed in Python and reads best."
+solution_code: |
+  age = 15
+  day = "Sunday"
+  score = 87
+
+  is_teenager = age >= 13 and age <= 19
+  is_weekend = day == "Saturday" or day == "Sunday"
+  is_valid_score = 0 <= score <= 100
+
+  print(is_teenager)
+  print(is_weekend)
+  print(is_valid_score)

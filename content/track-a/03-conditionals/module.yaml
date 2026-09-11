@@ -1,0 +1,21 @@
+slug: conditionals
+track: track-a
+position: 3
+title: Making decisions
+summary_markdown: >-
+  Until now your programs have run every line, every time. This is where that
+  changes: comparisons that produce True or False, and `if` statements that use
+  them to choose which lines run at all. It is the first idea in the course that
+  makes a program do something different depending on what it is given.
+
+objectives:
+  - text: Explain what a Boolean is and which comparisons produce one
+    bloom: understand
+  - text: Predict which branch of an if/elif/else a given value takes
+    bloom: understand
+  - text: Write conditions using comparison and logical operators
+    bloom: apply
+  - text: Choose between separate ifs and elif, and say why it matters
+    bloom: analyze
+  - text: Diagnose a conditional that takes the wrong branch
+    bloom: evaluate

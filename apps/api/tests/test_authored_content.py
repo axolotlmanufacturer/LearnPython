@@ -18,7 +18,23 @@ CURRICULUM = load_curriculum(get_settings().content_dir)
 
 def test_the_authored_curriculum_loads():
     assert [t.slug for t in CURRICULUM.tracks] == ["track-a", "track-b"]
-    assert [m.slug for m in CURRICULUM.modules] == ["orientation", "values", "strings"]
+    assert CURRICULUM.modules, "no modules loaded"
+
+
+def test_modules_are_numbered_consecutively_from_zero():
+    # A gap means a module was renamed or dropped and something now refers to a
+    # position that is not there; a duplicate means two modules claim the same
+    # place in the sequence. Asserting the shape rather than a fixed list lets
+    # the curriculum grow without editing this test every time.
+    positions = sorted(m.position for m in CURRICULUM.modules if m.track == "track-a")
+
+    assert positions == list(range(len(positions))), f"track-a positions are {positions}"
+
+
+def test_the_first_module_is_the_orientation():
+    first = min(CURRICULUM.modules, key=lambda m: m.position)
+
+    assert first.slug == "orientation"
 
 
 def test_track_b_declares_its_prerequisite():

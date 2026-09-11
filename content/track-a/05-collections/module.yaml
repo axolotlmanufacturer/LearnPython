@@ -1,0 +1,23 @@
+slug: collections
+track: track-a
+position: 5
+title: Collections
+summary_markdown: >-
+  Holding many values in one place. Lists for ordered things you will change,
+  dictionaries for looking something up by name, and tuples and sets for the two
+  jobs those do badly. Most real programs are a loop over a collection, so this
+  module is where the previous four start to combine.
+
+objectives:
+  - text: Say what a list, tuple, dictionary and set each hold, and how they differ
+    bloom: understand
+  - text: Predict the result of indexing and slicing, including negative indexes
+    bloom: understand
+  - text: Build and change a list, and look values up in a dictionary
+    bloom: apply
+  - text: Loop over a collection to filter it or accumulate a result
+    bloom: apply
+  - text: Choose the right collection for a task and justify the choice
+    bloom: evaluate
+  - text: Diagnose an IndexError or a KeyError from the traceback
+    bloom: analyze

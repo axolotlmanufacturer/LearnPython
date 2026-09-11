@@ -23,11 +23,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 import frontmatter
 import yaml
+from frontmatter.default_handlers import YAMLHandler
 from pydantic import ValidationError
 
 from app.content.schema import (
@@ -40,14 +42,48 @@ from app.content.schema import (
     validate_curriculum,
 )
 
+_BOOL_TAG = "tag:yaml.org,2002:bool"
+
 
 class ContentError(Exception):
     """A curriculum file is missing, malformed, or structurally inconsistent."""
 
 
+class ContentLoader(yaml.SafeLoader):
+    """A YAML loader that agrees with the one the content tests use.
+
+    PyYAML implements YAML 1.1, where `on`, `off`, `yes` and `no` are booleans.
+    The JavaScript parser that apps/web/tests/content.test.ts reads the same
+    files with implements YAML 1.2, where they are ordinary strings. Left alone,
+    the two halves of the content pipeline see different data — and the failure
+    is silent and absurd: a dictionary of word counts containing the word "on"
+    loses that key and grows a `True` one, so the content test passes and the
+    database load crashes.
+
+    Booleans are therefore narrowed to the YAML 1.2 spelling, which is also the
+    only spelling anyone writing curriculum would intend.
+    """
+
+
+_YAML_12_BOOL = re.compile(r"^(?:true|True|TRUE|false|False|FALSE)$")
+
+ContentLoader.yaml_implicit_resolvers = {
+    first_char: [(tag, regexp) for tag, regexp in resolvers if tag != _BOOL_TAG]
+    for first_char, resolvers in yaml.SafeLoader.yaml_implicit_resolvers.items()
+}
+ContentLoader.add_implicit_resolver(_BOOL_TAG, _YAML_12_BOOL, list("tTfF"))
+
+
+class ContentFrontmatterHandler(YAMLHandler):
+    """Parses lesson front matter with the loader above rather than PyYAML's default."""
+
+    def load(self, fm: str, **kwargs: Any) -> Any:
+        return yaml.load(fm, Loader=ContentLoader)
+
+
 def _read_yaml(path: Path) -> dict[str, Any]:
     try:
-        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data = yaml.load(path.read_text(encoding="utf-8"), Loader=ContentLoader)
     except yaml.YAMLError as exc:
         raise ContentError(f"{path}: invalid YAML — {exc}") from exc
     if data is None:
@@ -67,7 +103,7 @@ def _fail(path: Path, exc: ValidationError) -> ContentError:
 
 def load_lesson(path: Path) -> LessonFile:
     """Parse one lesson: YAML front matter plus a Markdown body."""
-    post = frontmatter.load(str(path))
+    post = frontmatter.load(str(path), handler=ContentFrontmatterHandler())
     data = dict(post.metadata)
     data["content_markdown"] = post.content.strip() + "\n"
     data.setdefault("slug", path.stem.split("-", 1)[-1])
