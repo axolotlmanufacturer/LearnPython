@@ -37,6 +37,9 @@ import io
 import json
 import linecache
 import math
+import os
+import shutil
+import tempfile
 import time
 import traceback
 from typing import Any
@@ -47,6 +50,10 @@ LEARNER_FILENAME = "<your code>"
 # output pane and freezing the browser tab. The limit is generous enough that no
 # legitimate beginner exercise reaches it.
 MAX_OUTPUT_CHARS = 200_000
+
+# A file an exercise reads or writes should not be big enough to matter, and a
+# learner whose loop appends forever should hit a limit rather than the browser's.
+MAX_FILE_CHARS = 200_000
 
 
 class OutputLimitExceeded(Exception):
@@ -150,6 +157,55 @@ def _make_input(lines: list[str], recorder: _Recorder):
 # --------------------------------------------------------------------------
 # Error reporting
 # --------------------------------------------------------------------------
+
+
+class _Workspace:
+    """A private directory for one run.
+
+    Module 8 teaches file I/O, so learner code genuinely creates and reads files.
+    The interpreter, however, is reused across every run in a session — and in
+    CI, across every exercise in the whole curriculum. Without isolation, an
+    exercise that forgot to create the file it reads would pass because a
+    *different* exercise had left one behind, which is exactly the class of bug
+    the content tests exist to catch.
+
+    So each run gets a fresh working directory, seeded with whatever files the
+    exercise declares, and it is removed afterwards.
+    """
+
+    def __init__(self, files: dict[str, str] | None) -> None:
+        self._files = files or {}
+        self._previous_cwd: str | None = None
+        self.path: str | None = None
+
+    def __enter__(self) -> _Workspace:
+        self.path = tempfile.mkdtemp(prefix="lp-run-")
+        self._previous_cwd = os.getcwd()
+        os.chdir(self.path)
+        for name, content in self._files.items():
+            # Exercise-authored names only, but a stray "../" would still escape
+            # the workspace, so keep them to a single path segment.
+            safe = os.path.basename(name)
+            if not safe or safe in {".", ".."}:
+                continue
+            with open(safe, "w", encoding="utf-8") as handle:
+                handle.write(content)
+        return self
+
+    def read(self, name: str) -> str | None:
+        """Read a file the run produced, or None if it is not there."""
+        safe = os.path.basename(name)
+        try:
+            with open(safe, encoding="utf-8") as handle:
+                return handle.read(MAX_FILE_CHARS + 1)
+        except OSError:
+            return None
+
+    def __exit__(self, *_exc: object) -> None:
+        if self._previous_cwd is not None:
+            os.chdir(self._previous_cwd)
+        if self.path is not None:
+            shutil.rmtree(self.path, ignore_errors=True)
 
 
 def _register_source(source: str) -> None:
@@ -307,6 +363,44 @@ def _check_stdout(check: dict[str, Any], stdout: str) -> dict[str, Any]:
             if mode != "contains"
             else "Your program's output does not contain the expected text."
         ),
+    }
+
+
+def _check_file(check: dict[str, Any], workspace: _Workspace) -> dict[str, Any]:
+    """Check what the program wrote to a file (Module 8 onward)."""
+    path = check["path"]
+    actual = workspace.read(path)
+
+    if actual is None:
+        return {
+            "passed": False,
+            "expected": f"a file called {path}",
+            "actual": "no such file",
+            "detail": (
+                f"This exercise expects your program to create a file called `{path}`, "
+                f"but afterwards there was no such file. Check the name you passed to "
+                f"`open(...)`, and that you opened it for writing."
+            ),
+        }
+
+    mode = check.get("match", "normalized")
+    expected = str(check.get("expected", ""))
+
+    if mode == "exact":
+        actual_cmp, expected_cmp = actual, expected
+        passed = actual_cmp == expected_cmp
+    elif mode == "contains":
+        actual_cmp, expected_cmp = _normalise_text(actual), _normalise_text(expected)
+        passed = expected_cmp in actual_cmp
+    else:
+        actual_cmp, expected_cmp = _normalise_text(actual), _normalise_text(expected)
+        passed = actual_cmp == expected_cmp
+
+    return {
+        "passed": passed,
+        "expected": expected_cmp,
+        "actual": actual_cmp,
+        "detail": None if passed else f"`{path}` does not contain what this exercise expects.",
     }
 
 
@@ -519,6 +613,7 @@ def _run_checks(
     stdout: str,
     source: str,
     recorder: _Recorder,
+    workspace: _Workspace,
 ) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     for index, check in enumerate(checks):
@@ -533,6 +628,8 @@ def _run_checks(
             outcome = _check_expr(check, namespace)
         elif kind == "source":
             outcome = _check_source(check, source)
+        elif kind == "file":
+            outcome = _check_file(check, workspace)
         else:
             outcome = {
                 "passed": False,
@@ -541,7 +638,8 @@ def _run_checks(
                 "detail": f"Unknown check kind {kind!r}. This is a bug in the exercise.",
             }
 
-        results.append({"label": label, "status": "passed" if outcome["passed"] else "failed", **outcome})
+        status = "passed" if outcome["passed"] else "failed"
+        results.append({"label": label, "status": status, **outcome})
     return results
 
 
@@ -560,6 +658,7 @@ def run_submission(payload_json: str) -> str:
     source: str = payload.get("code", "")
     stdin: list[str] = payload.get("stdin") or []
     checks: list[dict[str, Any]] = payload.get("checks") or []
+    files: dict[str, str] = payload.get("files") or {}
 
     recorder = _Recorder()
     namespace: dict[str, Any] = {
@@ -578,52 +677,56 @@ def run_submission(payload_json: str) -> str:
     real_stdout, real_stderr = sys.stdout, sys.stderr
     sys.stdout = _RecordingStream(recorder, "out")  # type: ignore[assignment]
     sys.stderr = _RecordingStream(recorder, "err")  # type: ignore[assignment]
-    try:
+
+    # The workspace stays open across the checks, because a `file` check has to
+    # read what the program wrote before the directory is removed.
+    with _Workspace(files) as workspace:
         try:
-            compiled = compile(source, LEARNER_FILENAME, "exec")
-        except SyntaxError as exc:
-            error = _describe_exception(exc)
-            status = "error"
-        else:
             try:
-                exec(compiled, namespace)  # noqa: S102 - this is the product
-            except OutputLimitExceeded:
-                status = "error"
-                error = {
-                    "type": "OutputLimit",
-                    "message": "This program produced far more output than expected.",
-                    "line": None,
-                    "column": None,
-                    "text": "",
-                    "traceback": "",
-                }
-            except SystemExit:
-                pass
-            except BaseException as exc:  # noqa: BLE001 - report anything the learner hits
+                compiled = compile(source, LEARNER_FILENAME, "exec")
+            except SyntaxError as exc:
                 error = _describe_exception(exc)
                 status = "error"
-    finally:
-        sys.stdout, sys.stderr = real_stdout, real_stderr
+            else:
+                try:
+                    exec(compiled, namespace)  # noqa: S102 - this is the product
+                except OutputLimitExceeded:
+                    status = "error"
+                    error = {
+                        "type": "OutputLimit",
+                        "message": "This program produced far more output than expected.",
+                        "line": None,
+                        "column": None,
+                        "text": "",
+                        "traceback": "",
+                    }
+                except SystemExit:
+                    pass
+                except BaseException as exc:  # noqa: BLE001 - report anything the learner hits
+                    error = _describe_exception(exc)
+                    status = "error"
+        finally:
+            sys.stdout, sys.stderr = real_stdout, real_stderr
 
-    stdout = recorder.stdout
+        stdout = recorder.stdout
 
-    if checks:
-        if status == "error":
-            check_results = [
-                {
-                    "label": check.get("label") or f"Check {i + 1}",
-                    "status": "not_run",
-                    "passed": False,
-                    "expected": None,
-                    "actual": None,
-                    "detail": "Not checked, because the code stopped with an error first.",
-                }
-                for i, check in enumerate(checks)
-            ]
+        if checks:
+            if status == "error":
+                check_results = [
+                    {
+                        "label": check.get("label") or f"Check {i + 1}",
+                        "status": "not_run",
+                        "passed": False,
+                        "expected": None,
+                        "actual": None,
+                        "detail": "Not checked, because the code stopped with an error first.",
+                    }
+                    for i, check in enumerate(checks)
+                ]
+            else:
+                check_results = _run_checks(checks, namespace, stdout, source, recorder, workspace)
         else:
-            check_results = _run_checks(checks, namespace, stdout, source, recorder)
-    else:
-        check_results = []
+            check_results = []
 
     passed = status == "ok" and all(c["passed"] for c in check_results)
     # Checks can raise too, and their tracebacks reference the learner's code,

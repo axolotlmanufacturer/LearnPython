@@ -63,6 +63,7 @@ class ExerciseOut(ORMModel):
     bloom: str
     hints: list[str]
     stdin: list[str]
+    files: dict[str, str]
     checks: list[dict[str, Any]] = Field(validation_alias="test_cases")
 
 

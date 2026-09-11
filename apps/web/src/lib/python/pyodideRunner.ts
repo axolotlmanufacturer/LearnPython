@@ -207,6 +207,7 @@ export class PyodideRunner implements PythonRunner {
           code: request.code,
           stdin: request.stdin ?? [],
           checks: request.checks ?? [],
+          files: request.files ?? {},
         }),
       });
     });

@@ -28,6 +28,7 @@ interface ExerciseFile {
   scaffold_level: string;
   starter_code?: string;
   stdin?: string[];
+  files?: Record<string, string>;
   checks: Check[];
   solution_code: string;
   hints?: string[];
@@ -82,6 +83,7 @@ describe("authored curriculum", () => {
       const result = await runner.run({
         code: exercise.solution_code,
         stdin: exercise.stdin,
+        files: exercise.files,
         checks: exercise.checks,
       });
 
@@ -111,6 +113,7 @@ describe("authored curriculum", () => {
       const result = await runner.run({
         code: exercise.starter_code ?? "",
         stdin: exercise.stdin,
+        files: exercise.files,
         checks: exercise.checks,
       });
 

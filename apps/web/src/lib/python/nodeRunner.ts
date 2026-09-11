@@ -119,6 +119,7 @@ export class NodePyodideRunner implements PythonRunner {
       code: request.code,
       stdin: request.stdin ?? [],
       checks: request.checks ?? [],
+      files: request.files ?? {},
     });
 
     // Arm the watchdog thread. It, not this thread, enforces the deadline: the

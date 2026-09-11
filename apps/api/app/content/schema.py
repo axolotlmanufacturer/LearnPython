@@ -116,8 +116,19 @@ class SourceCheck(StrictModel):
         return self
 
 
+class FileCheck(StrictModel):
+    """Check what the program wrote to a file. Needed from Module 8 onward, where
+    the observable result of an exercise is a file rather than printed output."""
+
+    kind: Literal["file"]
+    label: str
+    path: str
+    expected: str
+    match: Literal["exact", "normalized", "contains"] = "normalized"
+
+
 Check = Annotated[
-    StdoutCheck | CallCheck | ExprCheck | SourceCheck,
+    StdoutCheck | CallCheck | ExprCheck | SourceCheck | FileCheck,
     Field(discriminator="kind"),
 ]
 
@@ -140,6 +151,10 @@ class ExerciseFile(StrictModel):
     prompt_markdown: str
     starter_code: str = ""
     stdin: list[str] = Field(default_factory=list)
+    # Files placed in the run's working directory before the learner's code runs,
+    # so an exercise can hand them something to read. Each run gets a fresh
+    # directory, so nothing leaks between exercises.
+    files: dict[str, str] = Field(default_factory=dict)
     checks: list[Check] = Field(min_length=1)
     hints: list[str] = Field(default_factory=list)
     # Never loaded into the database and never served: it exists so the content

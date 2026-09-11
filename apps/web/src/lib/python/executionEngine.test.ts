@@ -20,7 +20,12 @@ afterAll(() => runner?.dispose());
 
 const run = (
   code: string,
-  options: { stdin?: string[]; checks?: Check[]; timeoutMs?: number } = {},
+  options: {
+    stdin?: string[];
+    checks?: Check[];
+    files?: Record<string, string>;
+    timeoutMs?: number;
+  } = {},
 ) => runner.run({ code, ...options });
 
 describe("output capture", () => {
@@ -407,6 +412,87 @@ describe("source checks", () => {
 
     expect(result.passed).toBe(false);
     expect(result.checks[0]!.detail).toContain("sum(");
+  });
+});
+
+describe("the filesystem", () => {
+  it("hands the program the files an exercise supplies", async () => {
+    const result = await run('print(open("notes.txt").read())', {
+      files: { "notes.txt": "first line\nsecond line\n" },
+    });
+
+    expect(result.status).toBe("ok");
+    expect(result.stdout).toBe("first line\nsecond line\n\n");
+  });
+
+  it("gives each run a clean directory", async () => {
+    // Without this, an exercise that forgot to create the file it reads would
+    // pass because an earlier exercise left one behind — which is exactly the
+    // fault the content tests exist to catch, so the harness must not hide it.
+    await run('open("leftover.txt", "w").write("from an earlier run")');
+    const result = await run('print(open("leftover.txt").read())');
+
+    expect(result.status).toBe("error");
+    expect(result.error?.type).toBe("FileNotFoundError");
+  });
+
+  it("does not leak a supplied file into the next run", async () => {
+    await run("pass", { files: { "seeded.txt": "hello" } });
+    const result = await run('print(open("seeded.txt").read())');
+
+    expect(result.error?.type).toBe("FileNotFoundError");
+  });
+
+  it("checks what the program wrote to a file", async () => {
+    const result = await run('with open("out.txt", "w") as f:\n    f.write("saved\\n")', {
+      checks: [
+        { kind: "file", label: "Writes the line to out.txt", path: "out.txt", expected: "saved" },
+      ],
+    });
+
+    expect(result.passed).toBe(true);
+  });
+
+  it("says the file is missing rather than reporting a bare failure", async () => {
+    const result = await run('print("did nothing")', {
+      checks: [{ kind: "file", label: "Writes out.txt", path: "out.txt", expected: "saved" }],
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.checks[0]!.detail).toContain("no such file");
+    expect(result.checks[0]!.detail).toContain("open(");
+  });
+
+  it("compares file contents forgivingly by default", async () => {
+    const result = await run('open("out.txt", "w").write("saved   \\n\\n")', {
+      checks: [{ kind: "file", label: "Writes the line", path: "out.txt", expected: "saved" }],
+    });
+
+    expect(result.passed).toBe(true);
+  });
+
+  it("lets a program read a seeded file and write a derived one", async () => {
+    const result = await run(
+      [
+        'lines = open("in.txt").read().splitlines()',
+        'with open("out.txt", "w") as f:',
+        "    for line in lines:",
+        '        f.write(line.upper() + "\\n")',
+      ].join("\n"),
+      {
+        files: { "in.txt": "one\ntwo\n" },
+        checks: [
+          {
+            kind: "file",
+            label: "Writes the lines in capitals",
+            path: "out.txt",
+            expected: "ONE\nTWO",
+          },
+        ],
+      },
+    );
+
+    expect(result.passed).toBe(true);
   });
 });
 

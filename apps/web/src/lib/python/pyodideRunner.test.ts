@@ -242,11 +242,12 @@ describe("PyodideRunner", () => {
     runner.dispose();
   });
 
-  it("passes stdin and checks through to the worker unchanged", async () => {
+  it("passes stdin, files and checks through to the worker unchanged", async () => {
     const runner = makeRunner();
     await runner.run({
       code: "x = input()",
       stdin: ["hello"],
+      files: { "data.txt": "one\ntwo\n" },
       checks: [{ kind: "stdout", label: "prints", expected: "hi" }],
     });
 
@@ -254,7 +255,22 @@ describe("PyodideRunner", () => {
     expect(JSON.parse((runMessage as { payload: string }).payload)).toEqual({
       code: "x = input()",
       stdin: ["hello"],
+      files: { "data.txt": "one\ntwo\n" },
       checks: [{ kind: "stdout", label: "prints", expected: "hi" }],
+    });
+    runner.dispose();
+  });
+
+  it("defaults stdin, files and checks to empty rather than omitting them", async () => {
+    const runner = makeRunner();
+    await runner.run({ code: "pass" });
+
+    const runMessage = FakeWorker.instances[0]!.received.find((m) => m.type === "run");
+    expect(JSON.parse((runMessage as { payload: string }).payload)).toEqual({
+      code: "pass",
+      stdin: [],
+      files: {},
+      checks: [],
     });
     runner.dispose();
   });

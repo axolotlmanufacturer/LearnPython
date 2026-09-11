@@ -63,7 +63,18 @@ export interface SourceCheck {
   forbid_text?: string[];
 }
 
-export type Check = StdoutCheck | CallCheck | ExprCheck | SourceCheck;
+/** Check what the program wrote to a file. Needed from Module 8 onward, where
+ * the observable result of an exercise is a file rather than output. */
+export interface FileCheck {
+  kind: "file";
+  label: string;
+  /** File name, relative to the run's working directory. */
+  path: string;
+  expected: string;
+  match?: StdoutMatch;
+}
+
+export type Check = StdoutCheck | CallCheck | ExprCheck | SourceCheck | FileCheck;
 
 export interface ExecutionRequest {
   code: string;
@@ -71,6 +82,10 @@ export interface ExecutionRequest {
   stdin?: string[];
   /** Omit or leave empty to just run the code without grading it. */
   checks?: Check[];
+  /** Files placed in the run's working directory before the code runs, so an
+   * exercise can hand the learner something to read. Each run gets a fresh
+   * directory, so nothing survives between runs. */
+  files?: Record<string, string>;
   /** Wall-clock budget. Defaults to DEFAULT_TIMEOUT_MS. */
   timeoutMs?: number;
 }

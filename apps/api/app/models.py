@@ -185,6 +185,8 @@ class Exercise(Base):
     test_cases: Mapped[list[dict[str, Any]]] = mapped_column(JsonType, nullable=False, default=list)
     # Lines fed to input() during grading.
     stdin: Mapped[list[str]] = mapped_column(JsonType, nullable=False, default=list)
+    # Files seeded into the run's working directory before the code runs.
+    files: Mapped[dict[str, str]] = mapped_column(JsonType, nullable=False, default=dict)
     # Ordered, revealed one at a time (Section 6, Phase 2 feature).
     hints: Mapped[list[str]] = mapped_column(JsonType, nullable=False, default=list)
     # How much support this exercise gives; see ScaffoldLevel in content/schema.py.

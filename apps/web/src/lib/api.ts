@@ -26,6 +26,8 @@ export interface ApiExercise {
   bloom: string;
   hints: string[];
   stdin: string[];
+  /** Seeded into the run's working directory before the learner's code runs. */
+  files: Record<string, string>;
   checks: Check[];
 }
 

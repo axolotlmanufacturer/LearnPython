@@ -73,6 +73,7 @@ export function ExerciseCard({
       const outcome = await run({
         code,
         stdin: exercise.stdin,
+        files: exercise.files,
         checks: exercise.checks,
       });
       setResult(outcome);
@@ -84,7 +85,17 @@ export function ExerciseCard({
     } finally {
       setRunning(false);
     }
-  }, [code, exercise.checks, exercise.slug, exercise.stdin, onAttempt, onSolved, run, solved]);
+  }, [
+    code,
+    exercise.checks,
+    exercise.files,
+    exercise.slug,
+    exercise.stdin,
+    onAttempt,
+    onSolved,
+    run,
+    solved,
+  ]);
 
   const handleReset = useCallback(() => {
     setCode(exercise.starter_code);
