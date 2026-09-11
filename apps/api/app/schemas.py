@@ -6,7 +6,7 @@ are never loaded into the database at all, and `password_hash` never leaves it.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -128,14 +128,43 @@ class QuizItemOut(ORMModel):
     # cannot read it out of the response before answering.
 
 
-class QuizAnswerRequest(BaseModel):
+# ------------------------------------------------------------------ review
+
+
+class ReviewItemOut(BaseModel):
+    """A quiz item surfaced by the spaced-repetition queue.
+
+    Carries its module so the learner can see what is being revisited, and
+    `seen_before` so the interface can say "again" rather than implying a
+    first-time item is overdue. Like QuizItemOut, no answer.
+    """
+
+    id: int
+    slug: str
+    kind: str
+    prompt_markdown: str
+    code: str | None
+    options: list[str]
+    module_slug: str
+    module_title: str
+    reviews_module_slug: str | None
+    seen_before: bool
+
+
+class QuizAttemptRequest(BaseModel):
+    # Addressed by id, not slug: quiz slugs are unique only within a module, and
+    # the same recall item legitimately appears in more than one module's quiz.
+    quiz_item_id: int
     answer: str
 
 
-class QuizAnswerResponse(BaseModel):
+class QuizAttemptResponse(BaseModel):
     correct: bool
     answer: str
     explanation_markdown: str
+    #: Days until this item is scheduled to come back.
+    interval_days: int
+    next_due_at: datetime
 
 
 # --------------------------------------------------------------- progress
@@ -176,3 +205,21 @@ class SubmissionOut(ORMModel):
     exercise_id: int
     passed: bool
     submitted_at: datetime
+
+
+class SummaryOut(BaseModel):
+    """The understated recognition of Section 6, feature 9.
+
+    Everything here is a plain count of work already done. There is deliberately
+    no "don't break your streak", no target to fall short of, and no comparison
+    with anyone else: the interface shows a streak when there is one and says
+    nothing at all when there is not (`streak_days` is 0).
+    """
+
+    streak_days: int
+    last_practised_on: date | None
+    exercises_passed: int
+    #: Slugs of fully completed modules, in curriculum order.
+    completed_module_slugs: list[str]
+    #: Items waiting in the review queue, so the interface can offer it or not.
+    reviews_due: int

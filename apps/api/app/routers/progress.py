@@ -9,11 +9,12 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_user
 from app.db import get_db
+from app.learner import completed_module_ids, due_review_items, practice_streak
 from app.models import Exercise, Lesson, Module, Progress, Submission, User
 from app.schemas import (
     ModuleProgressOut,
@@ -21,6 +22,7 @@ from app.schemas import (
     ProgressUpdate,
     SubmissionOut,
     SubmissionRequest,
+    SummaryOut,
 )
 
 router = APIRouter(prefix="/api/progress", tags=["progress"])
@@ -130,6 +132,44 @@ async def set_lesson_progress(
         module_slug=module_slug,
         status=row.status,  # type: ignore[arg-type]
         completed_at=row.completed_at,
+    )
+
+
+@router.get("/summary", response_model=SummaryOut)
+async def summary(
+    user: User = Depends(current_user), db: AsyncSession = Depends(get_db)
+) -> SummaryOut:
+    """Recognition of work done, and nothing else.
+
+    Section 6 asks for streaks and module badges, and asks in the same sentence
+    that they stay understated and free of dark patterns. The way to honour both
+    is to report only facts the learner produced — days practised, exercises
+    passed, modules finished — and leave the interface free to say nothing at
+    all when there is nothing to report. There is no goal here to fall short of.
+    """
+    streak_days, last_practised_on = await practice_streak(db, user.id)
+
+    passed = await db.execute(
+        select(func.count(func.distinct(Submission.exercise_id))).where(
+            Submission.user_id == user.id, Submission.passed.is_(True)
+        )
+    )
+
+    completed = await completed_module_ids(db, user.id)
+    slugs = await db.execute(
+        select(Module.slug).where(Module.id.in_(completed)).order_by(Module.position)
+    )
+
+    # The queue is capped at a sitting's worth, so counting the rows it would
+    # return is both cheap and the number we want to show: see REVIEW_BATCH_SIZE.
+    due = await due_review_items(db, user.id)
+
+    return SummaryOut(
+        streak_days=streak_days,
+        last_practised_on=last_practised_on,
+        exercises_passed=passed.scalar_one(),
+        completed_module_slugs=list(slugs.scalars().all()),
+        reviews_due=len(due),
     )
 
 

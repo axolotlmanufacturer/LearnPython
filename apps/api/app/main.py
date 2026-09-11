@@ -15,7 +15,7 @@ from sqlalchemy import text
 
 from app.config import get_settings
 from app.db import dispose_engine, get_session_factory
-from app.routers import auth, curriculum, progress
+from app.routers import auth, curriculum, progress, quiz
 
 
 @asynccontextmanager
@@ -54,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(curriculum.router)
     app.include_router(progress.router)
+    app.include_router(quiz.router)
 
     return app
 
