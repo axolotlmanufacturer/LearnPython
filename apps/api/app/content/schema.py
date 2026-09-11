@@ -244,6 +244,26 @@ def validate_curriculum(curriculum: Curriculum) -> list[str]:
     problems: list[str] = []
     track_slugs = {t.slug for t in curriculum.tracks}
 
+    # Exercise slugs are only unique *within a lesson* (see the model's
+    # UniqueConstraint), but Submission lookups and progress tracking find an
+    # exercise by slug alone, with nothing to disambiguate. Two lessons reusing
+    # the same slug would make a learner's submission silently attach to the
+    # wrong exercise. Global uniqueness is stricter than the schema requires,
+    # but it is what makes that lookup safe, so it is enforced here.
+    seen_exercise_slugs: dict[str, str] = {}
+    for module in curriculum.modules:
+        for lesson in module.lessons:
+            for exercise in lesson.exercises:
+                where = f"module '{module.slug}' lesson '{lesson.slug}'"
+                if exercise.slug in seen_exercise_slugs:
+                    problems.append(
+                        f"{where} exercise '{exercise.slug}' reuses a slug already used at "
+                        f"{seen_exercise_slugs[exercise.slug]} — exercise slugs must be "
+                        f"unique across the whole curriculum, not just within a lesson"
+                    )
+                else:
+                    seen_exercise_slugs[exercise.slug] = where
+
     for track in curriculum.tracks:
         if track.prerequisite_slug and track.prerequisite_slug not in track_slugs:
             problems.append(

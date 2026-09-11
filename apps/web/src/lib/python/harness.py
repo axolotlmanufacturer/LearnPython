@@ -404,7 +404,7 @@ def _check_file(check: dict[str, Any], workspace: _Workspace) -> dict[str, Any]:
     }
 
 
-def _check_call(check: dict[str, Any], namespace: dict[str, Any], recorder: _Recorder):
+def _check_call(check: dict[str, Any], namespace: dict[str, Any]) -> dict[str, Any]:
     name = check["function"]
     target = namespace.get(name)
 
@@ -436,7 +436,6 @@ def _check_call(check: dict[str, Any], namespace: dict[str, Any], recorder: _Rec
     try:
         result = target(*args, **kwargs)
     except Exception as exc:  # noqa: BLE001 - the learner's exception is the finding
-        recorder.write("err", "")
         return {
             "passed": False,
             "expected": _short_repr(check.get("expected")),
@@ -612,7 +611,6 @@ def _run_checks(
     namespace: dict[str, Any],
     stdout: str,
     source: str,
-    recorder: _Recorder,
     workspace: _Workspace,
 ) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
@@ -623,7 +621,7 @@ def _run_checks(
         if kind == "stdout":
             outcome = _check_stdout(check, stdout)
         elif kind == "call":
-            outcome = _check_call(check, namespace, recorder)
+            outcome = _check_call(check, namespace)
         elif kind == "expr":
             outcome = _check_expr(check, namespace)
         elif kind == "source":
@@ -724,7 +722,7 @@ def run_submission(payload_json: str) -> str:
                     for i, check in enumerate(checks)
                 ]
             else:
-                check_results = _run_checks(checks, namespace, stdout, source, recorder, workspace)
+                check_results = _run_checks(checks, namespace, stdout, source, workspace)
         else:
             check_results = []
 

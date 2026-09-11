@@ -199,6 +199,32 @@ def test_a_fill_in_exercise_must_actually_provide_something_to_fill_in():
     assert any("fill_in but has no starter code" in problem for problem in problems)
 
 
+def test_exercise_slugs_must_be_unique_across_the_whole_curriculum(tmp_path):
+    # Submission lookups find an exercise by slug alone, with nothing to
+    # disambiguate which lesson it belongs to. Two lessons reusing a slug would
+    # make a learner's submission silently attach to the wrong exercise, so this
+    # is stricter than the per-lesson uniqueness the schema itself requires.
+    write_tracks(tmp_path)
+
+    first = write_module(tmp_path)
+    write_lesson(first)
+    write_exercise(first, slug="say-hello")
+
+    second = write_module(tmp_path, directory="01-values", slug="values", position=1)
+    write_lesson(second, slug="numbers", title="Numbers", filename="01-numbers.md")
+    write_exercise(
+        second,
+        filename="01-say-hello.yaml",
+        slug="say-hello",
+        lesson="numbers",
+        scaffold_level="write_from_spec",
+        starter_code="",
+    )
+
+    with pytest.raises(ContentError, match="reuses a slug already used"):
+        load_curriculum(tmp_path)
+
+
 def test_a_module_quiz_must_revisit_earlier_material(tmp_path):
     write_tracks(tmp_path)
     module_dir = write_module(
