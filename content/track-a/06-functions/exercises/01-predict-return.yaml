@@ -1,0 +1,57 @@
+slug: predict-return
+lesson: defining-functions
+position: 1
+title: Predict what each call gives back
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  Two functions that look almost identical. Predict all four printed lines
+  before running.
+
+  The difference between `shout` and `whisper` is one word, and it changes what
+  the caller can do with the result entirely.
+starter_code: |
+  def shout(word):
+      return word.upper() + "!"
+
+
+  def whisper(word):
+      print(word.lower() + "...")
+
+
+  print(shout("hello"))
+  print(whisper("hello"))
+
+  a = shout("bye")
+  b = whisper("bye")
+  print(a)
+  print(b)
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      HELLO!
+      hello...
+      None
+      bye...
+      BYE!
+      None
+hints:
+  - "`whisper` prints but has no `return`, so it hands back `None`."
+  - "Line 11 prints twice: once from inside `whisper`, then `None` from the outer `print`."
+solution_code: |
+  def shout(word):
+      return word.upper() + "!"
+
+
+  def whisper(word):
+      print(word.lower() + "...")
+
+
+  print(shout("hello"))
+  print(whisper("hello"))
+
+  a = shout("bye")
+  b = whisper("bye")
+  print(a)
+  print(b)

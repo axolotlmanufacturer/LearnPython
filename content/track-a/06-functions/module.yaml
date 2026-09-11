@@ -1,0 +1,24 @@
+slug: functions
+track: track-a
+position: 6
+title: Functions
+summary_markdown: >-
+  Naming a piece of work so you can use it without rereading it. Functions are
+  how a program stops being one long script and starts being something you can
+  hold in your head — and the exercises here deliberately refactor code you
+  already wrote in Modules 4 and 5, so the benefit is one you can feel rather
+  than take on trust.
+
+objectives:
+  - text: Explain what a function is and what happens when one is called
+    bloom: understand
+  - text: Predict what a function returns, including when it returns None
+    bloom: understand
+  - text: Define functions with parameters, defaults, and return values
+    bloom: apply
+  - text: Refactor repeated code into a function and call it more than once
+    bloom: apply
+  - text: Explain why a variable created inside a function is not visible outside it
+    bloom: analyze
+  - text: Diagnose a function that prints where it should return
+    bloom: evaluate

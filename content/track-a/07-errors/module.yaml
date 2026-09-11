@@ -1,0 +1,23 @@
+slug: errors
+track: track-a
+position: 7
+title: Errors and exceptions
+summary_markdown: >-
+  Module 0 taught you to read a traceback when you had seen two. You have now
+  seen dozens, so this module reads them properly — and then turns the
+  relationship around: instead of only reacting to errors, you design for the
+  ones you can predict, and let the rest stop the program loudly.
+
+objectives:
+  - text: Read a multi-frame traceback and name the line that caused the failure
+    bloom: understand
+  - text: Name the common exception types and what each one usually means
+    bloom: remember
+  - text: Catch a specific exception with try/except and recover from it
+    bloom: apply
+  - text: Keep the risky line alone in a try block rather than wrapping everything
+    bloom: analyze
+  - text: Judge when to catch an exception and when to let the program stop
+    bloom: evaluate
+  - text: Validate input in a loop until it is usable
+    bloom: create

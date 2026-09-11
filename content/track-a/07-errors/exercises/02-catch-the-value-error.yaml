@@ -1,0 +1,51 @@
+slug: catch-the-value-error
+lesson: handling-exceptions
+position: 1
+title: Survive the bad entries
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  `raw` holds what some people typed. Three of the five are numbers.
+
+  Add up the ones that are numbers and ignore the rest, so `total` ends up as
+  `60` and the program prints it.
+
+  Fill in the two blanks: what to try, and which exception to catch. Catch the
+  specific one — a bare `except:` would also swallow mistakes of your own.
+starter_code: |
+  raw = ["10", "twenty", "20", "", "30"]
+
+  total = 0
+  for entry in raw:
+      try:
+          total += ...
+      except ...:
+          pass
+
+  print(total)
+checks:
+  - kind: expr
+    label: total is 60
+    expression: total
+    expected: 60
+  - kind: stdout
+    label: The total is printed
+    expected: "60"
+  - kind: source
+    label: Catches ValueError specifically, not everything
+    require_text:
+      - except ValueError
+hints:
+  - "`int(entry)` is the line that can fail — it is the only thing that belongs in the try."
+  - '`int("twenty")` raises `ValueError`, so that is what to catch.'
+solution_code: |
+  raw = ["10", "twenty", "20", "", "30"]
+
+  total = 0
+  for entry in raw:
+      try:
+          total += int(entry)
+      except ValueError:
+          pass
+
+  print(total)

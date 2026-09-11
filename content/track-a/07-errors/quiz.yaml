@@ -1,0 +1,108 @@
+items:
+  - slug: recall-traceback-order
+    position: 1
+    kind: multiple_choice
+    reviews_module_slug: orientation
+    prompt_markdown: |
+      From Module 0, now with several frames — in this traceback, which line
+      should you look at first?
+
+      ```
+      Traceback (most recent call last):
+        File "<your code>", line 10, in <module>
+          print(report([]))
+        File "<your code>", line 6, in report
+          return f"Average: {average(results)}"
+        File "<your code>", line 2, in average
+          return sum(numbers) / len(numbers)
+      ZeroDivisionError: division by zero
+      ```
+    options:
+      - Line 2 — the deepest frame, where it actually broke
+      - Line 10 — the first frame listed
+      - Line 6 — the middle
+      - The line after the traceback
+    answer: Line 2 — the deepest frame, where it actually broke
+    explanation_markdown: >-
+      Read from the bottom. The deepest frame is what broke; the frames above it
+      are how you got there. Both matter — line 2 tells you the list was empty,
+      line 10 tells you who passed an empty list, which is the real bug.
+
+  - slug: recall-missing-return
+    position: 2
+    kind: predict_output
+    reviews_module_slug: functions
+    prompt_markdown: |
+      From Module 6 — why does this raise a TypeError?
+    code: |
+      def total(prices):
+          print(sum(prices))
+
+      print(total([1, 2]) + 1)
+    options:
+      - "`total` has no `return`, so it hands back `None`, and `None + 1` fails"
+      - "`sum` does not work on lists"
+      - The list is too short
+      - It does not raise anything
+    answer: "`total` has no `return`, so it hands back `None`, and `None + 1` fails"
+    explanation_markdown: >-
+      It prints 3 on the way past, then hands back `None`. A `TypeError`
+      mentioning `NoneType` is almost always a missing `return` one or two frames
+      up the traceback.
+
+  - slug: bare-except
+    position: 3
+    kind: multiple_choice
+    prompt_markdown: |
+      Why is this a bad idea?
+
+      ```python
+      try:
+          value = int(txt)
+      except:
+          value = 0
+      ```
+    options:
+      - It catches everything, including a typo in `txt`, and hides real bugs
+      - "`except` must always name an exception or it is a syntax error"
+      - It is slower than naming the exception
+      - Nothing is wrong with it
+    answer: It catches everything, including a typo in `txt`, and hides real bugs
+    explanation_markdown: >-
+      If `txt` is misspelled, the `NameError` is swallowed and the program
+      carries on with 0 — a wrong answer instead of a clear message, which is
+      worse than crashing. Name what you expect: `except ValueError:`.
+
+  - slug: try-block-size
+    position: 4
+    kind: multiple_choice
+    prompt_markdown: |
+      How much code belongs inside a `try` block?
+    options:
+      - Only the line or two that can raise the exception you are catching
+      - As much as possible, so nothing is left unprotected
+      - The whole function
+      - Whatever reads most neatly
+    answer: Only the line or two that can raise the exception you are catching
+    explanation_markdown: >-
+      A `try` block is a claim about which line you expect to fail. A large one
+      makes a claim you cannot support, and will report an unrelated failure
+      under the wrong explanation — which sends you looking in the wrong place.
+
+  - slug: when-not-to-catch
+    position: 5
+    kind: multiple_choice
+    prompt_markdown: |
+      A `KeyError` appears halfway through a calculation, on a key you were
+      certain would be there. What is usually the right response?
+    options:
+      - Let it stop the program — it means the data is not the shape you think
+      - Catch it and use a default so the program keeps going
+      - Catch it and print a warning
+      - Wrap the whole file in try/except
+    answer: Let it stop the program — it means the data is not the shape you think
+    explanation_markdown: >-
+      Catching an exception says "I expected this and I know what to do about
+      it". Neither half is true here. Stopping is loud, immediate, and points at
+      the line; a default buries the real problem and lets a wrong answer travel
+      onwards. Handle what you predicted, and let the rest stop the program.

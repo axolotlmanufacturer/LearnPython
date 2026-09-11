@@ -1,0 +1,77 @@
+slug: shrink-the-try-block
+lesson: handling-exceptions
+position: 2
+title: Shrink the try block
+bloom: analyze
+scaffold_level: modify
+prompt_markdown: |
+  Three orders. The second has a quantity nobody can convert; the third has no
+  price at all. They are different problems and deserve different messages.
+
+  This program reports `Bad quantity` for both, because one oversized `try` with
+  `except Exception` catches everything and blames whatever it was told to blame.
+  Run it and see.
+
+  Fix it so the output is:
+
+  ```
+  10
+  Bad quantity
+  Unknown price
+  ```
+
+  Two changes: put only the conversion inside the `try` and catch `ValueError`
+  specifically, and handle the missing price the way Module 5 taught — a missing
+  key you *expect* is a `.get()` with a check, not an exception.
+starter_code: |
+  orders = [
+      {"quantity": "2", "price": 5},
+      {"quantity": "lots", "price": 3},
+      {"quantity": "4"},
+  ]
+
+  for order in orders:
+      try:
+          quantity = int(order["quantity"])
+          price = order["price"]
+          print(quantity * price)
+      except Exception:
+          print("Bad quantity")
+checks:
+  - kind: stdout
+    label: Each order gets the right message
+    expected: |
+      10
+      Bad quantity
+      Unknown price
+  - kind: source
+    label: Catches ValueError rather than everything
+    require_text:
+      - except ValueError
+    forbid_text:
+      - except Exception
+      - "except:"
+hints:
+  - '`int(order["quantity"])` is the only line that raises `ValueError`. Nothing else belongs in the try.'
+  - '`order.get("price")` returns `None` for the third order instead of raising.'
+  - "After each message, `continue` moves on to the next order."
+solution_code: |
+  orders = [
+      {"quantity": "2", "price": 5},
+      {"quantity": "lots", "price": 3},
+      {"quantity": "4"},
+  ]
+
+  for order in orders:
+      try:
+          quantity = int(order["quantity"])
+      except ValueError:
+          print("Bad quantity")
+          continue
+
+      price = order.get("price")
+      if price is None:
+          print("Unknown price")
+          continue
+
+      print(quantity * price)

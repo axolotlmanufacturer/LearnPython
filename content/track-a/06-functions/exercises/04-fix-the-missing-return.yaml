@@ -1,0 +1,63 @@
+slug: fix-the-missing-return
+lesson: defining-functions
+position: 4
+title: Find out why the total is None
+bloom: evaluate
+scaffold_level: debug
+prompt_markdown: |
+  This program is meant to add up three baskets and report the grand total. It
+  stops with a `TypeError` about `NoneType`.
+
+  Run it, read the explanation, and work out what `basket_total` is actually
+  handing back.
+
+  When it is fixed the output should be:
+
+  ```
+  Grand total: 60
+  ```
+
+  Fix the function, not the calls.
+starter_code: |
+  def basket_total(prices):
+      total = 0
+      for price in prices:
+          total += price
+      print(total)
+
+
+  a = basket_total([10, 20])
+  b = basket_total([5, 5])
+  c = basket_total([15, 5])
+
+  print(f"Grand total: {a + b + c}")
+checks:
+  - kind: stdout
+    label: The grand total is reported
+    expected: "Grand total: 60"
+  - kind: call
+    label: basket_total gives back the sum
+    function: basket_total
+    args: [[1, 2, 3]]
+    expected: 6
+  - kind: source
+    label: The function returns its result
+    require_ast:
+      - Return
+hints:
+  - A function with no `return` hands back `None`, whatever it printed on the way.
+  - "`print` shows a value; `return` gives it to your program. This function needs the second."
+  - "Replace `print(total)` with `return total`."
+solution_code: |
+  def basket_total(prices):
+      total = 0
+      for price in prices:
+          total += price
+      return total
+
+
+  a = basket_total([10, 20])
+  b = basket_total([5, 5])
+  c = basket_total([15, 5])
+
+  print(f"Grand total: {a + b + c}")

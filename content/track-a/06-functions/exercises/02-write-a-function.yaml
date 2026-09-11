@@ -1,0 +1,48 @@
+slug: write-a-function
+lesson: defining-functions
+position: 2
+title: Write a function with a default
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  Finish `apply_discount`. It takes a price and a discount percentage, and
+  returns the price after the discount. The percentage should default to `10`.
+
+  - `apply_discount(200)` → `180.0`
+  - `apply_discount(200, 25)` → `150.0`
+
+  Return the number; do not print it.
+starter_code: |
+  def apply_discount(price, percent=...):
+      return ...
+
+
+  print(apply_discount(200))
+  print(apply_discount(200, 25))
+checks:
+  - kind: call
+    label: A 10% default discount on 200 gives 180
+    function: apply_discount
+    args: [200]
+    expected: 180.0
+    tolerance: 0.001
+  - kind: call
+    label: An explicit 25% on 200 gives 150
+    function: apply_discount
+    args: [200, 25]
+    expected: 150.0
+    tolerance: 0.001
+  - kind: source
+    label: The function returns rather than prints
+    require_ast:
+      - Return
+hints:
+  - A default is written in the `def` line, after an `=`.
+  - "Taking 10% off means keeping 90%: `price * (100 - percent) / 100`."
+solution_code: |
+  def apply_discount(price, percent=10):
+      return price * (100 - percent) / 100
+
+
+  print(apply_discount(200))
+  print(apply_discount(200, 25))

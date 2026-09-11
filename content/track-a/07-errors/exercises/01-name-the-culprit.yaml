@@ -1,0 +1,51 @@
+slug: name-the-culprit
+lesson: reading-tracebacks
+position: 1
+title: Find the line that caused it
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  Run this and read the traceback carefully. Before you change anything, answer
+  three questions for yourself:
+
+  1. What kind of error is it?
+  2. Which line does the deepest frame point at?
+  3. Which line actually caused the problem?
+
+  The answer to 2 and 3 is not the same line, and that is the point of this
+  exercise.
+
+  Then make it print `2` by fixing the **call**, not the function: pass the
+  position that exists rather than the one that does not.
+starter_code: |
+  def second_item(items):
+      return items[1]
+
+
+  def describe(items):
+      return second_item(items)
+
+
+  print(describe([1, 2, 3]))
+  print(describe([9]))
+checks:
+  - kind: stdout
+    label: Both calls succeed
+    expected: |
+      2
+      9
+hints:
+  - "The deepest frame is `items[1]` inside `second_item` — that is where it broke."
+  - "The chain above shows the empty-ish list came from line 10. A one-item list has no position 1."
+  - "Change `describe([9])` to a list with at least two items, or ask for a position that exists."
+solution_code: |
+  def second_item(items):
+      return items[1]
+
+
+  def describe(items):
+      return second_item(items)
+
+
+  print(describe([1, 2, 3]))
+  print(describe([9, 9]))

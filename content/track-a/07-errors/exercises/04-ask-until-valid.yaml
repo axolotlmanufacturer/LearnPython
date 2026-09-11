@@ -1,0 +1,61 @@
+slug: ask-until-valid
+lesson: handling-exceptions
+position: 3
+title: Keep asking until the answer is usable
+bloom: create
+scaffold_level: write_from_spec
+prompt_markdown: |
+  Ask `How many tickets? ` until you get a whole number, then print
+  `Booking N tickets.`
+
+  Each time someone types something that is not a whole number, print
+  `Please type a whole number.` and ask again.
+
+  The answers typed will be `two`, then `3.5`, then `4`, so the output is:
+
+  ```
+  How many tickets? Please type a whole number.
+  How many tickets? Please type a whole number.
+  How many tickets? Booking 4 tickets.
+  ```
+
+  Note that `3.5` fails too — `int()` will not accept a decimal point in text.
+
+  This is the `while True` with a `break` from the lesson. Store the final number
+  in a variable called `tickets`.
+starter_code: |
+  # Keep asking until the answer converts, then report it.
+stdin:
+  - two
+  - "3.5"
+  - "4"
+checks:
+  - kind: expr
+    label: tickets is the number 4
+    expression: tickets
+    expected: 4
+  - kind: stdout
+    label: It re-asks twice, then books
+    expected: |
+      How many tickets? Please type a whole number.
+      How many tickets? Please type a whole number.
+      How many tickets? Booking 4 tickets.
+  - kind: source
+    label: Loops until the answer is usable
+    require_ast:
+      - While
+      - Try
+hints:
+  - "`while True:` with the attempt inside, because you cannot test the condition until after you have tried."
+  - 'Put `tickets = int(input("How many tickets? "))` in a `try`, and `break` on the next line.'
+  - "The `break` is only reached when the conversion succeeded — that is what makes this shape work."
+  - "`except ValueError:` prints the message, and the loop goes round again."
+solution_code: |
+  while True:
+      try:
+          tickets = int(input("How many tickets? "))
+          break
+      except ValueError:
+          print("Please type a whole number.")
+
+  print(f"Booking {tickets} tickets.")

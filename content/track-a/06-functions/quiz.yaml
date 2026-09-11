@@ -1,0 +1,107 @@
+items:
+  - slug: recall-dict-items
+    position: 1
+    kind: predict_output
+    reviews_module_slug: collections
+    prompt_markdown: |
+      From Module 5 — what does this print?
+    code: |
+      stock = {"apples": 3, "pears": 0}
+      for item, count in stock.items():
+          if count == 0:
+              print(item)
+    options:
+      - "`pears`"
+      - "`apples`"
+      - "`0`"
+      - Both names
+    answer: "`pears`"
+    explanation_markdown: >-
+      `.items()` unpacks each entry into two names at once, so `item` is the key
+      and `count` the value. Only `pears` has a count of 0.
+
+  - slug: recall-accumulator-start
+    position: 2
+    kind: multiple_choice
+    reviews_module_slug: loops
+    prompt_markdown: |
+      From Module 4 — inside a function that totals a list, where does
+      `total = 0` belong?
+    options:
+      - Before the loop, inside the function
+      - Inside the loop
+      - Outside the function, at the top of the file
+      - After the loop
+    answer: Before the loop, inside the function
+    explanation_markdown: >-
+      Inside the loop, it resets every pass and only the last item survives.
+      Outside the function, every call would share one total and the second call
+      would carry on from the first — the local variable is what keeps each call
+      independent.
+
+  - slug: return-vs-print
+    position: 3
+    kind: predict_output
+    prompt_markdown: What does this print?
+    code: |
+      def double(n):
+          print(n * 2)
+
+      result = double(5)
+      print(result)
+    options:
+      - "`10` then `None`"
+      - "`10` then `10`"
+      - "`None` then `10`"
+      - Just `10`
+    answer: "`10` then `None`"
+    explanation_markdown: >-
+      The function prints 10 on the way past, but it has no `return`, so it hands
+      back `None` — and that is what lands in `result`. An unexpected `None` is
+      almost always a missing `return`.
+
+  - slug: return-ends-the-function
+    position: 4
+    kind: predict_output
+    prompt_markdown: What does `check(80)` return?
+    code: |
+      def check(score):
+          if score >= 50:
+              return "pass"
+          return "fail"
+    options:
+      - '`"pass"`'
+      - '`"fail"`'
+      - Both, one after the other
+      - "`None`"
+    answer: '`"pass"`'
+    explanation_markdown: >-
+      `return` ends the function immediately, so the last line is never reached
+      for a score of 80. That is why this shape needs no `else` — reaching the
+      final line already means the `if` did not return.
+
+  - slug: scope
+    position: 5
+    kind: multiple_choice
+    prompt_markdown: |
+      Why does this raise a NameError?
+
+      ```python
+      def calculate():
+          working = 42
+          return working
+
+      calculate()
+      print(working)
+      ```
+    options:
+      - "`working` exists only inside the function, and is gone when it returns"
+      - "`calculate()` was never called"
+      - "`working` was never given a value"
+      - You cannot print a number
+    answer: "`working` exists only inside the function, and is gone when it returns"
+    explanation_markdown: >-
+      Local variables are discarded when the call ends. That is what lets you
+      name something `total` inside a function without worrying about the rest of
+      the program. To use the value outside, capture what the function returns:
+      `answer = calculate()`.

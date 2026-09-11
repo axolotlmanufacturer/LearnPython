@@ -1,0 +1,82 @@
+slug: build-a-report
+lesson: defining-functions
+position: 5
+title: Build a small report from two functions
+bloom: create
+scaffold_level: write_from_spec
+prompt_markdown: |
+  Write two functions, then use them together.
+
+  **`average(numbers)`** — returns the mean of a list of numbers, or `0` for an
+  empty list. (An empty list would otherwise divide by zero, which you met in
+  Module 1.)
+
+  **`grade(score)`** — returns `"Distinction"` for 70 or more, `"Pass"` for 50
+  or more, and `"Not yet"` below that.
+
+  Then print one line per student, using both:
+
+  ```
+  Ada: 81.0 Distinction
+  Alan: 48.3 Not yet
+  ```
+
+  The averages are shown to one decimal place. Both functions must **return**
+  their answers — do not print inside them.
+starter_code: |
+  results = {"Ada": [78, 85, 80], "Alan": [40, 55, 50]}
+
+  # Write average() and grade(), then print one line per student.
+checks:
+  - kind: call
+    label: average works on a normal list
+    function: average
+    args: [[2, 4, 6]]
+    expected: 4.0
+    tolerance: 0.001
+  - kind: call
+    label: average returns 0 for an empty list rather than failing
+    function: average
+    args: [[]]
+    expected: 0
+  - kind: call
+    label: grade(70) is a Distinction
+    function: grade
+    args: [70]
+    expected: Distinction
+  - kind: call
+    label: grade(49) is Not yet
+    function: grade
+    args: [49]
+    expected: Not yet
+  - kind: stdout
+    label: The report reads correctly
+    expected: |
+      Ada: 81.0 Distinction
+      Alan: 48.3 Not yet
+hints:
+  - "Guard the empty case first: `if not numbers: return 0`."
+  - "`sum(numbers) / len(numbers)` is the mean once you know the list is not empty."
+  - "`grade` is the elif chain from Module 3, with `return` instead of `print`."
+  - "Loop with `for name, scores in results.items():` and format with `{value:.1f}`."
+solution_code: |
+  results = {"Ada": [78, 85, 80], "Alan": [40, 55, 50]}
+
+
+  def average(numbers):
+      if not numbers:
+          return 0
+      return sum(numbers) / len(numbers)
+
+
+  def grade(score):
+      if score >= 70:
+          return "Distinction"
+      if score >= 50:
+          return "Pass"
+      return "Not yet"
+
+
+  for name, scores in results.items():
+      mean = average(scores)
+      print(f"{name}: {mean:.1f} {grade(mean)}")

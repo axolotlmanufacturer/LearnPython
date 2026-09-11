@@ -1,0 +1,81 @@
+slug: refactor-the-repetition
+lesson: defining-functions
+position: 3
+title: Refactor the repetition away
+bloom: apply
+scaffold_level: modify
+prompt_markdown: |
+  This is the vowel-counting loop from Module 4, written out three times because
+  there are three phrases. It works. It is also exactly the situation functions
+  exist for — notice that a fix to the counting rule would have to be made in
+  three places.
+
+  Rewrite it so the counting happens in **one** function called `count_vowels`,
+  called three times. The output must not change:
+
+  ```
+  5
+  3
+  3
+  ```
+
+  The function should take the phrase and **return** the count.
+starter_code: |
+  first = "the quick brown fox"
+  count = 0
+  for letter in first:
+      if letter.lower() in "aeiou":
+          count += 1
+  print(count)
+
+  second = "jumps over"
+  count = 0
+  for letter in second:
+      if letter.lower() in "aeiou":
+          count += 1
+  print(count)
+
+  third = "the lazy dog"
+  count = 0
+  for letter in third:
+      if letter.lower() in "aeiou":
+          count += 1
+  print(count)
+checks:
+  - kind: stdout
+    label: The three counts are unchanged
+    expected: |
+      5
+      3
+      3
+  - kind: call
+    label: count_vowels works on a phrase it has not seen
+    function: count_vowels
+    args: ["programming is fun"]
+    expected: 5
+  - kind: call
+    label: count_vowels returns 0 for text with no vowels
+    function: count_vowels
+    args: ["rhythm"]
+    expected: 0
+  - kind: source
+    label: The loop is written once, inside a function
+    require_ast:
+      - FunctionDef
+      - Return
+hints:
+  - "Start with `def count_vowels(phrase):` and move one copy of the loop inside it."
+  - "The accumulator goes inside the function too — each call needs its own."
+  - "End the function with `return count`, then replace each block with `print(count_vowels(first))`."
+solution_code: |
+  def count_vowels(phrase):
+      count = 0
+      for letter in phrase:
+          if letter.lower() in "aeiou":
+              count += 1
+      return count
+
+
+  print(count_vowels("the quick brown fox"))
+  print(count_vowels("jumps over"))
+  print(count_vowels("the lazy dog"))
