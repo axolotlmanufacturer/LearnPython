@@ -1,0 +1,61 @@
+slug: predict-newlines
+lesson: reading-and-writing
+position: 1
+title: Predict what the lines look like
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  The file `shopping.txt` already exists, and holds:
+
+  ```
+  milk
+  bread
+  eggs
+  ```
+
+  Predict the five printed lines before you run this. `repr()` shows you exactly
+  what a string contains, invisible characters included — which is the whole
+  reason it is used here.
+starter_code: |
+  with open("shopping.txt") as f:
+      first = f.readline()
+
+  print(repr(first))
+  print(repr(first.strip()))
+
+  with open("shopping.txt") as f:
+      lines = f.readlines()
+
+  print(len(lines))
+  print(repr(lines[-1]))
+  print(lines[0] == "milk")
+files:
+  shopping.txt: |
+    milk
+    bread
+    eggs
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      'milk\n'
+      'milk'
+      3
+      'eggs\n'
+      False
+hints:
+  - Every line read from a file keeps its newline character.
+  - "That is why the last line is `False`: `\"milk\\n\"` is not equal to `\"milk\"`."
+solution_code: |
+  with open("shopping.txt") as f:
+      first = f.readline()
+
+  print(repr(first))
+  print(repr(first.strip()))
+
+  with open("shopping.txt") as f:
+      lines = f.readlines()
+
+  print(len(lines))
+  print(repr(lines[-1]))
+  print(lines[0] == "milk")

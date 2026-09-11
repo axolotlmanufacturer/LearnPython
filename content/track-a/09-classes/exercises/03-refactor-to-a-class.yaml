@@ -1,0 +1,107 @@
+slug: refactor-to-a-class
+lesson: classes-and-objects
+position: 3
+title: Refactor the dictionary into a class
+bloom: create
+scaffold_level: write_from_spec
+prompt_markdown: |
+  This is the shape the lesson describes: a dictionary, and three functions that
+  all take it as their first argument. It works, and there are two of them, and
+  nothing binds the data to the operations.
+
+  Rewrite it as a class called `Student` with:
+
+  - `__init__(self, name)` — sets `name`, and starts `scores` as an empty list
+  - `add_score(self, score)` — appends to `scores`
+  - `average(self)` — returns the mean, or `0` when there are no scores
+  - `report(self)` — returns `"<name>: <average to one decimal place>"`
+
+  The output must not change:
+
+  ```
+  Ada: 81.0
+  Alan: 0.0
+  ```
+
+  Note that Alan has no scores, so his average must not divide by zero — the
+  guard from Module 6 applies here too.
+starter_code: |
+  def new_student(name):
+      return {"name": name, "scores": []}
+
+
+  def add_score(student, score):
+      student["scores"].append(score)
+
+
+  def average(student):
+      if not student["scores"]:
+          return 0
+      return sum(student["scores"]) / len(student["scores"])
+
+
+  def report(student):
+      return f"{student['name']}: {average(student):.1f}"
+
+
+  ada = new_student("Ada")
+  add_score(ada, 78)
+  add_score(ada, 85)
+  add_score(ada, 80)
+
+  alan = new_student("Alan")
+
+  print(report(ada))
+  print(report(alan))
+checks:
+  - kind: stdout
+    label: The reports are unchanged
+    expected: |
+      Ada: 81.0
+      Alan: 0.0
+  - kind: expr
+    label: A new student starts with no scores
+    expression: Student("Test").scores
+    expected: []
+  - kind: expr
+    label: A student with no scores averages 0 rather than failing
+    expression: Student("Test").average()
+    expected: 0
+  - kind: source
+    label: Written as a class
+    require_ast:
+      - ClassDef
+    forbid_text:
+      - "def new_student"
+hints:
+  - "Start with `class Student:` and turn `new_student` into `__init__(self, name)`."
+  - 'Each function''s first parameter becomes `self`, and `student["scores"]` becomes `self.scores`.'
+  - "`report` can call `self.average()` directly — no need to pass anything."
+  - 'The calls become `ada = Student("Ada")`, `ada.add_score(78)`, `print(ada.report())`.'
+solution_code: |
+  class Student:
+      def __init__(self, name):
+          self.name = name
+          self.scores = []
+
+      def add_score(self, score):
+          self.scores.append(score)
+
+      def average(self):
+          if not self.scores:
+              return 0
+          return sum(self.scores) / len(self.scores)
+
+      def report(self):
+          return f"{self.name}: {self.average():.1f}"
+
+
+  ada = Student("Ada")
+  ada.add_score(78)
+  ada.add_score(85)
+  ada.add_score(80)
+
+  alan = Student("Alan")
+
+  print(ada.report())
+  print(alan.report())

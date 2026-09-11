@@ -1,0 +1,74 @@
+slug: summarise-to-json
+lesson: csv-and-json
+position: 2
+title: Summarise a CSV into JSON
+bloom: create
+scaffold_level: write_from_spec
+prompt_markdown: |
+  Read `readings.csv`, work out a summary, and save it to `summary.json`.
+
+  The summary should be a dictionary with exactly three keys:
+
+  - `count` — how many rows (not counting the header)
+  - `warmest` — the highest `celsius` value, as a number
+  - `coldest` — the lowest
+
+  For the supplied file that is `{"count": 4, "warmest": 35.0, "coldest": -3.0}`.
+
+  Also print the number of rows, so the program shows `4`.
+
+  Remember that CSV fields arrive as text, and that JSON keeps the types you give
+  it — so convert before you save, not after.
+starter_code: |
+  import csv
+  import json
+
+  # Read readings.csv, build the summary, write summary.json, print the count.
+files:
+  readings.csv: |
+    city,celsius
+    Oslo,-3
+    Cairo,35
+    Lisbon,18
+    Dublin,9
+checks:
+  - kind: file
+    label: summary.json holds the three values
+    path: summary.json
+    match: contains
+    expected: '"count": 4'
+  - kind: stdout
+    label: The row count is printed
+    expected: "4"
+  - kind: expr
+    label: The saved JSON reads back with the right numbers
+    expression: |
+      __import__("json").load(open("summary.json")) == {
+          "count": 4, "warmest": 35.0, "coldest": -3.0
+      }
+hints:
+  - "`rows = list(csv.DictReader(f))` gives you every row as a dictionary."
+  - 'Convert as you go: `temperatures = [float(row["celsius"]) for row in rows]` — or build the list with an ordinary loop.'
+  - "`max(...)` and `min(...)` do the rest."
+  - '`json.dump(summary, f)` writes it, inside a `with open("summary.json", "w") as f:` block.'
+solution_code: |
+  import csv
+  import json
+
+  with open("readings.csv") as f:
+      rows = list(csv.DictReader(f))
+
+  temperatures = []
+  for row in rows:
+      temperatures.append(float(row["celsius"]))
+
+  summary = {
+      "count": len(rows),
+      "warmest": max(temperatures),
+      "coldest": min(temperatures),
+  }
+
+  with open("summary.json", "w") as f:
+      json.dump(summary, f)
+
+  print(summary["count"])

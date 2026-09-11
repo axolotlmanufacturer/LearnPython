@@ -1,0 +1,65 @@
+slug: predict-instances
+lesson: classes-and-objects
+position: 1
+title: Predict what each counter holds
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  Two counters made from the same class. Predict all four printed numbers before
+  you run it.
+
+  The question this is really asking: when `first.bump()` runs, whose `count`
+  goes up?
+starter_code: |
+  class Counter:
+      def __init__(self):
+          self.count = 0
+
+      def bump(self, by=1):
+          self.count += by
+          return self.count
+
+
+  first = Counter()
+  second = Counter()
+
+  first.bump()
+  first.bump(5)
+  second.bump()
+
+  print(first.count)
+  print(second.count)
+  print(first.bump())
+  print(second.count)
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      6
+      1
+      7
+      1
+hints:
+  - "`first` and `second` are separate instances, each with its own `count`."
+  - "`self` inside `bump` is whichever instance it was called on."
+solution_code: |
+  class Counter:
+      def __init__(self):
+          self.count = 0
+
+      def bump(self, by=1):
+          self.count += by
+          return self.count
+
+
+  first = Counter()
+  second = Counter()
+
+  first.bump()
+  first.bump(5)
+  second.bump()
+
+  print(first.count)
+  print(second.count)
+  print(first.bump())
+  print(second.count)

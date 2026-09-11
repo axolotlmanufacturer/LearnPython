@@ -1,0 +1,84 @@
+slug: finish-the-class
+lesson: classes-and-objects
+position: 2
+title: Finish the class
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  `Basket` is half written. Fill in the blanks so that:
+
+  - a new basket starts with an empty list of items;
+  - `add(name, price)` puts a `(name, price)` pair on the list;
+  - `total()` returns the sum of the prices;
+  - `count()` returns how many items there are.
+
+  The program should print:
+
+  ```
+  2 items, 4.5 total
+  ```
+
+  Watch the `self.` prefixes — a bare `items` inside a method is a local variable
+  that vanishes when the method ends.
+starter_code: |
+  class Basket:
+      def __init__(self):
+          self.items = ...
+
+      def add(self, name, price):
+          ...
+
+      def total(self):
+          total = 0
+          for name, price in ...:
+              total += price
+          return total
+
+      def count(self):
+          return ...
+
+
+  basket = Basket()
+  basket.add("apple", 1.5)
+  basket.add("bread", 3.0)
+
+  print(f"{basket.count()} items, {basket.total()} total")
+checks:
+  - kind: stdout
+    label: The basket reports two items totalling 4.5
+    expected: "2 items, 4.5 total"
+  - kind: expr
+    label: A fresh basket starts empty
+    expression: Basket().count()
+    expected: 0
+  - kind: expr
+    label: A fresh basket totals zero
+    expression: Basket().total()
+    expected: 0
+hints:
+  - An empty list is `[]`.
+  - "`self.items.append((name, price))` adds the pair."
+  - "The loop walks `self.items`, and `count` returns `len(self.items)`."
+solution_code: |
+  class Basket:
+      def __init__(self):
+          self.items = []
+
+      def add(self, name, price):
+          self.items.append((name, price))
+
+      def total(self):
+          total = 0
+          for name, price in self.items:
+              total += price
+          return total
+
+      def count(self):
+          return len(self.items)
+
+
+  basket = Basket()
+  basket.add("apple", 1.5)
+  basket.add("bread", 3.0)
+
+  print(f"{basket.count()} items, {basket.total()} total")

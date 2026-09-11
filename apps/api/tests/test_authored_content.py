@@ -74,17 +74,47 @@ def test_each_module_offers_between_three_and_six_exercises():
         assert 3 <= count <= 8, f"{module.slug} has {count} exercises"
 
 
-def test_each_module_ends_more_independently_than_it_starts():
-    # Section 2.2: scaffolding is withdrawn across a module, not held constant.
+def _scaffold_ranks(module: object) -> list[int]:
+    return [
+        exercise.scaffold_level.rank
+        for lesson in module.lessons  # type: ignore[attr-defined]
+        for exercise in lesson.exercises
+    ]
+
+
+def test_support_never_increases_within_a_lesson():
+    # Section 2.2: scaffolding is withdrawn as mastery is demonstrated, never
+    # reinstated. The lesson is the right unit for this — a *new* lesson
+    # introduces a new idea and may legitimately start with more support again,
+    # which is why Module 0's second lesson opens with a fill-in after the first
+    # closed with a modify.
     for module in CURRICULUM.modules:
-        levels = [
-            exercise.scaffold_level.rank
-            for lesson in module.lessons
-            for exercise in lesson.exercises
-        ]
-        assert levels[-1] > levels[0], (
+        for lesson in module.lessons:
+            ranks = [exercise.scaffold_level.rank for exercise in lesson.exercises]
+            assert ranks == sorted(ranks), (
+                f"{module.slug}/{lesson.slug} re-applies support: {ranks}"
+            )
+
+
+def test_each_teaching_module_ends_more_independently_than_it_starts():
+    for module in CURRICULUM.modules:
+        ranks = _scaffold_ranks(module)
+        if len(set(ranks)) == 1:
+            # A capstone module is open-ended throughout by design — there is no
+            # progression to make because it *is* the end of the progression.
+            continue
+        assert ranks[-1] > ranks[0], (
             f"{module.slug} does not reduce support between its first and last exercise"
         )
+
+
+def test_the_capstone_module_is_open_ended_throughout():
+    capstones = max(CURRICULUM.modules, key=lambda m: m.position)
+
+    for lesson in capstones.lessons:
+        for exercise in lesson.exercises:
+            assert exercise.scaffold_level is ScaffoldLevel.OPEN_ENDED
+            assert exercise.rubric, f"{exercise.slug} is open-ended but offers no rubric"
 
 
 def test_module_zero_asks_nothing_above_analyze():

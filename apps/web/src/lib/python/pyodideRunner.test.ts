@@ -26,6 +26,8 @@ class FakeWorker implements Pick<Worker, "postMessage" | "terminate"> {
   replyDelayMs = 0;
   /** How long the interpreter takes to "load". */
   bootDelayMs = 0;
+  /** When true, the worker never reports ready — a stalled asset fetch. */
+  neverBoots = false;
 
   constructor() {
     FakeWorker.instances.push(this);
@@ -46,6 +48,7 @@ class FakeWorker implements Pick<Worker, "postMessage" | "terminate"> {
     this.received.push(message);
 
     if (message.type === "init") {
+      if (this.neverBoots) return;
       // Reply synchronously at zero delay: several tests install fake timers
       // before calling ready(), and a deferred reply would never be delivered.
       if (this.bootDelayMs === 0) {
@@ -272,6 +275,57 @@ describe("PyodideRunner", () => {
       files: {},
       checks: [],
     });
+    runner.dispose();
+  });
+
+  it("gives up when the interpreter never finishes loading", async () => {
+    // Without a load timeout the promise never settles, `run()` awaits it before
+    // starting its own timeout, and the learner sits on "Running…" forever.
+    vi.useFakeTimers();
+    const runner = makeRunner((worker) => {
+      worker.neverBoots = true;
+    });
+
+    const pending = runner.run({ code: 'print("hi")' });
+    await vi.advanceTimersByTimeAsync(90_000);
+    const result = await pending;
+
+    expect(result.status).toBe("crashed");
+    expect(result.error?.message).toContain("did not finish starting");
+    expect(FakeWorker.instances[0]!.terminated).toBe(true);
+    runner.dispose();
+  });
+
+  it("retries the load on the next run rather than remembering the failure", async () => {
+    vi.useFakeTimers();
+    let created = 0;
+    const runner = makeRunner((worker) => {
+      // The first worker stalls; a second attempt should get a fresh one.
+      if (created++ === 0) worker.neverBoots = true;
+    });
+
+    const first = runner.run({ code: "pass", timeoutMs: 5000 });
+    await vi.advanceTimersByTimeAsync(90_000);
+    expect((await first).status).toBe("crashed");
+
+    const second = runner.run({ code: "pass", timeoutMs: 5000 });
+    await vi.advanceTimersByTimeAsync(10);
+
+    expect((await second).status).toBe("ok");
+    expect(FakeWorker.instances).toHaveLength(2);
+    runner.dispose();
+  });
+
+  it("does not give up on a load that is merely slow", async () => {
+    vi.useFakeTimers();
+    const runner = makeRunner((worker) => {
+      worker.bootDelayMs = 20_000;
+    });
+
+    const pending = runner.run({ code: "pass" });
+    await vi.advanceTimersByTimeAsync(20_010);
+
+    expect((await pending).status).toBe("ok");
     runner.dispose();
   });
 

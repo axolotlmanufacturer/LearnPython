@@ -1,0 +1,23 @@
+slug: files
+track: track-a
+position: 8
+title: Files and data formats
+summary_markdown: >-
+  Reading and writing files, and the two formats you will meet everywhere: CSV
+  for tables and JSON for structured data. Everything your programs have done so
+  far vanished when they finished; this is where results start to outlive the
+  run that produced them.
+
+objectives:
+  - text: Explain what a file mode is and why "w" is destructive
+    bloom: understand
+  - text: Read a file with open() and a with block, line by line or all at once
+    bloom: apply
+  - text: Write results to a file so they survive the program
+    bloom: apply
+  - text: Parse CSV data into Python values, and handle the header row
+    bloom: apply
+  - text: Read and write JSON, and say when it suits the data better than CSV
+    bloom: analyze
+  - text: Handle a missing file without letting the program stop
+    bloom: evaluate

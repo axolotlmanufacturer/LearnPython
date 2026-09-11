@@ -21,6 +21,7 @@ import { CodeEditor } from "@/components/CodeEditor";
 import { FeedbackPanel } from "@/components/FeedbackPanel";
 import { OutputPane } from "@/components/OutputPane";
 import { usePythonRunner } from "@/components/PythonRunnerProvider";
+import { RubricChecklist } from "@/components/RubricChecklist";
 import { Markdown } from "@/components/Markdown";
 import { SCAFFOLD_LABELS, type ApiExercise } from "@/lib/api";
 import type { ExecutionResult } from "@/lib/python/types";
@@ -183,6 +184,8 @@ export function ExerciseCard({
       </div>
 
       {result && <FeedbackPanel result={result} />}
+
+      <RubricChecklist criteria={exercise.rubric} exerciseSlug={exercise.slug} />
 
       {exercise.hints.length > 0 && (
         <div className="mt-5 border-t border-rule pt-4">

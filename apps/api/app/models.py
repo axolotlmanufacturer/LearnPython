@@ -189,6 +189,8 @@ class Exercise(Base):
     files: Mapped[dict[str, str]] = mapped_column(JsonType, nullable=False, default=dict)
     # Ordered, revealed one at a time (Section 6, Phase 2 feature).
     hints: Mapped[list[str]] = mapped_column(JsonType, nullable=False, default=list)
+    # Self-assessment criteria for open-ended work (Section 6, feature 10).
+    rubric: Mapped[list[str]] = mapped_column(JsonType, nullable=False, default=list)
     # How much support this exercise gives; see ScaffoldLevel in content/schema.py.
     scaffold_level: Mapped[str] = mapped_column(
         String(32), nullable=False, default="write_from_spec"

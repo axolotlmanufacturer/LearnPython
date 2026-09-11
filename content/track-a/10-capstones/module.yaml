@@ -1,0 +1,21 @@
+slug: capstones
+track: track-a
+position: 10
+title: Capstone projects
+summary_markdown: >-
+  Three projects, each needing most of the course at once. There is no new syntax
+  here — the difficulty is holding a whole program in your head and deciding how
+  to structure it, which is a different skill from any single module and the one
+  that actually matters. Pick whichever appeals; you do not need all three.
+
+objectives:
+  - text: Plan a program of 50 to 100 lines before writing it
+    bloom: create
+  - text: Combine input, control flow, collections, functions and files in one program
+    bloom: create
+  - text: Organise a program into functions that each do one thing
+    bloom: evaluate
+  - text: Anticipate the ways a user can misuse the program, and handle those
+    bloom: evaluate
+  - text: Judge your own code against criteria rather than only against output
+    bloom: evaluate

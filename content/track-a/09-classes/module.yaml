@@ -1,0 +1,21 @@
+slug: classes
+track: track-a
+position: 9
+title: Classes
+summary_markdown: >-
+  When a dictionary of values and the functions that operate on it keep
+  travelling together, a class is the thing that binds them. This module is
+  motivated by refactoring exactly that situation — code you have already
+  written — rather than by introducing vocabulary first and a reason afterwards.
+
+objectives:
+  - text: Explain what a class is and how it differs from an instance of it
+    bloom: understand
+  - text: Say what self refers to and why every method takes it
+    bloom: understand
+  - text: Define a class with __init__, attributes, and methods
+    bloom: apply
+  - text: Refactor a dictionary-plus-functions design into a class
+    bloom: apply
+  - text: Judge when a class earns its place and when a function is enough
+    bloom: evaluate

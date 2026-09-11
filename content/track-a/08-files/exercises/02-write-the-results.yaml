@@ -1,0 +1,45 @@
+slug: write-the-results
+lesson: reading-and-writing
+position: 2
+title: Save the results to a file
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  Write each name to `names.txt`, one per line, so the file ends up holding:
+
+  ```
+  Ada
+  Alan
+  Grace
+  ```
+
+  Two blanks: the mode to open with, and what to write. Remember that `.write()`
+  does not add a newline of its own — unlike `print`, which always does.
+starter_code: |
+  names = ["Ada", "Alan", "Grace"]
+
+  with open("names.txt", ...) as f:
+      for name in names:
+          f.write(...)
+checks:
+  - kind: file
+    label: names.txt holds one name per line
+    path: names.txt
+    expected: |
+      Ada
+      Alan
+      Grace
+  - kind: source
+    label: Uses a with block
+    require_text:
+      - with open(
+hints:
+  - 'Writing needs mode `"w"`.'
+  - "`f.write(name)` would run them all together — add the newline yourself."
+  - "`f.write(name + \"\\n\")`"
+solution_code: |
+  names = ["Ada", "Alan", "Grace"]
+
+  with open("names.txt", "w") as f:
+      for name in names:
+          f.write(name + "\n")

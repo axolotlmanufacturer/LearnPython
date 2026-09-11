@@ -1,0 +1,169 @@
+slug: contact-book
+lesson: projects
+position: 2
+title: "Capstone: a contact book"
+bloom: create
+scaffold_level: open_ended
+prompt_markdown: |
+  Write a contact book that reads commands until told to quit, and saves what it
+  holds so it survives the program.
+
+  ### What it must do
+
+  Load `contacts.json` at the start. If the file is not there, start with an
+  empty book rather than stopping — a first run has no file yet.
+
+  Then repeatedly show the prompt `> ` and act on what is typed:
+
+  | Typed | Does |
+  | --- | --- |
+  | `add NAME NUMBER` | Stores it, prints `Added NAME.` |
+  | `find NAME` | Prints `NAME: NUMBER`, or `No contact called NAME.` |
+  | `list` | Prints `NAME: NUMBER` for each, in the order added |
+  | `quit` | Saves to `contacts.json` and stops |
+
+  Anything else prints `I do not understand that.` and carries on.
+
+  ### The session
+
+  The commands typed will be:
+
+  ```
+  find Ada
+  add Ada 555-0100
+  add Alan 555-0199
+  list
+  find Ada
+  wibble
+  quit
+  ```
+
+  so the output is:
+
+  ```
+  > No contact called Ada.
+  > Added Ada.
+  > Added Alan.
+  > Ada: 555-0100
+  Alan: 555-0199
+  > Ada: 555-0100
+  > I do not understand that.
+  > Saved 2 contacts.
+  ```
+
+  Afterwards `contacts.json` must hold both contacts.
+
+  Note that the existing file is seeded as empty (`{}`) for this run, so the
+  first `find` finds nothing.
+starter_code: |
+  # Your contact book goes here.
+stdin:
+  - find Ada
+  - add Ada 555-0100
+  - add Alan 555-0199
+  - list
+  - find Ada
+  - wibble
+  - quit
+files:
+  contacts.json: "{}"
+checks:
+  - kind: stdout
+    label: The whole session behaves correctly
+    expected: |
+      > No contact called Ada.
+      > Added Ada.
+      > Added Alan.
+      > Ada: 555-0100
+      Alan: 555-0199
+      > Ada: 555-0100
+      > I do not understand that.
+      > Saved 2 contacts.
+  - kind: file
+    label: The contacts are saved to contacts.json
+    path: contacts.json
+    match: contains
+    expected: "555-0199"
+  - kind: source
+    label: Organised into functions
+    require_ast:
+      - FunctionDef
+  - kind: source
+    label: Loops until told to quit
+    require_ast:
+      - While
+rubric:
+  - Is each command handled by its own function, rather than one long if/elif body?
+  - Does a missing `contacts.json` start an empty book rather than stopping the program?
+  - Is the `try`/`except` around only the `open`, and does it name `FileNotFoundError` specifically?
+  - Would `add Ada` with no number crash your program? Should it?
+  - Is the saving in one place, so there is exactly one way the file gets written?
+  - Could you add a `delete` command by writing one function and one line?
+hints:
+  - "`line.split()` gives you the command and its arguments: `parts[0]` is the verb."
+  - "Load with a `try`/`except FileNotFoundError` around `json.load`, defaulting to `{}`."
+  - "A dictionary keyed by name keeps insertion order, so `list` needs no sorting."
+  - "`while True:` with a `break` on `quit` — the same shape as Module 7."
+solution_code: |
+  import json
+
+  FILENAME = "contacts.json"
+
+
+  def load():
+      try:
+          with open(FILENAME) as f:
+              return json.load(f)
+      except FileNotFoundError:
+          return {}
+
+
+  def save(contacts):
+      with open(FILENAME, "w") as f:
+          json.dump(contacts, f)
+
+
+  def add(contacts, parts):
+      name, number = parts[1], parts[2]
+      contacts[name] = number
+      print(f"Added {name}.")
+
+
+  def find(contacts, parts):
+      name = parts[1]
+      if name in contacts:
+          print(f"{name}: {contacts[name]}")
+      else:
+          print(f"No contact called {name}.")
+
+
+  def show_all(contacts):
+      for name, number in contacts.items():
+          print(f"{name}: {number}")
+
+
+  def main():
+      contacts = load()
+
+      while True:
+          parts = input("> ").split()
+          if not parts:
+              print("I do not understand that.")
+              continue
+
+          command = parts[0]
+          if command == "quit":
+              save(contacts)
+              print(f"Saved {len(contacts)} contacts.")
+              break
+          if command == "add" and len(parts) == 3:
+              add(contacts, parts)
+          elif command == "find" and len(parts) == 2:
+              find(contacts, parts)
+          elif command == "list":
+              show_all(contacts)
+          else:
+              print("I do not understand that.")
+
+
+  main()

@@ -1,0 +1,133 @@
+slug: sales-report
+lesson: projects
+position: 3
+title: "Capstone: a sales report"
+bloom: create
+scaffold_level: open_ended
+prompt_markdown: |
+  Read a CSV of sales, work out some figures, print a report and save it.
+
+  ### The data
+
+  `sales.csv` has four columns: `date`, `region`, `product`, `amount`. One row
+  has an amount that is not a number — that is deliberate, and your program must
+  skip it and carry on rather than stopping.
+
+  ### What it must do
+
+  Print exactly this report:
+
+  ```
+  Rows read: 5
+  Rows skipped: 1
+  Total: 1050.00
+  Best region: north (600.00)
+  ```
+
+  - `Rows read` counts the usable rows; `Rows skipped` counts the unusable ones.
+  - Money is shown to two decimal places.
+  - `Best region` is the region with the highest total.
+
+  Then write the same four lines to `report.txt`.
+
+  ### Rules
+
+  - Do not hard-code the regions — find them from the data.
+  - Do not hard-code which row is bad — detect it.
+starter_code: |
+  # Your report goes here. The data is in sales.csv.
+files:
+  sales.csv: |
+    date,region,product,amount
+    2026-01-04,north,widget,250.00
+    2026-01-05,south,gadget,180.00
+    2026-01-06,north,widget,350.00
+    2026-01-07,east,gizmo,unknown
+    2026-01-08,south,widget,120.00
+    2026-01-09,east,gadget,150.00
+checks:
+  - kind: stdout
+    label: The report reads correctly
+    expected: |
+      Rows read: 5
+      Rows skipped: 1
+      Total: 1050.00
+      Best region: north (600.00)
+  - kind: file
+    label: The report is saved to report.txt
+    path: report.txt
+    expected: |
+      Rows read: 5
+      Rows skipped: 1
+      Total: 1050.00
+      Best region: north (600.00)
+  - kind: source
+    label: Organised into functions
+    require_ast:
+      - FunctionDef
+  - kind: source
+    label: The bad row is detected rather than assumed
+    require_text:
+      - except ValueError
+rubric:
+  - Is the reading, the calculating, and the printing done by separate functions?
+  - Is the `try`/`except` around only the conversion that can fail?
+  - Would the program still be correct if a new region appeared in the data?
+  - Would it still be correct if the rows arrived in a different order?
+  - Is the report built once and then both printed and saved, rather than written out twice?
+  - What does your program do with a completely empty CSV? Is that the behaviour you want?
+hints:
+  - "`csv.DictReader` gives a dictionary per row, keyed by the header names."
+  - '`float(row["amount"])` inside a `try`/`except ValueError` is how you skip the bad row and count it.'
+  - "Total per region is the dictionary accumulator from Module 5: `totals[region] = totals.get(region, 0) + amount`."
+  - "`max(totals, key=totals.get)` gives the region with the highest total."
+solution_code: |
+  import csv
+
+
+  def read_rows(filename):
+      """Returns the usable rows and how many were skipped."""
+      rows = []
+      skipped = 0
+      with open(filename) as f:
+          for row in csv.DictReader(f):
+              try:
+                  amount = float(row["amount"])
+              except ValueError:
+                  skipped += 1
+                  continue
+              rows.append({"region": row["region"], "amount": amount})
+      return rows, skipped
+
+
+  def totals_by_region(rows):
+      totals = {}
+      for row in rows:
+          totals[row["region"]] = totals.get(row["region"], 0) + row["amount"]
+      return totals
+
+
+  def build_report(rows, skipped):
+      totals = totals_by_region(rows)
+      best = max(totals, key=totals.get)
+      return [
+          f"Rows read: {len(rows)}",
+          f"Rows skipped: {skipped}",
+          f"Total: {sum(totals.values()):.2f}",
+          f"Best region: {best} ({totals[best]:.2f})",
+      ]
+
+
+  def main():
+      rows, skipped = read_rows("sales.csv")
+      lines = build_report(rows, skipped)
+
+      for line in lines:
+          print(line)
+
+      with open("report.txt", "w") as f:
+          for line in lines:
+              f.write(line + "\n")
+
+
+  main()

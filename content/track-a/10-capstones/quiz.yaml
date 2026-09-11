@@ -1,0 +1,89 @@
+items:
+  - slug: recall-when-a-class
+    position: 1
+    kind: multiple_choice
+    reviews_module_slug: classes
+    prompt_markdown: |
+      From Module 9 — in the contact book, would a `Contact` class be worth it?
+    options:
+      - Probably not — a contact is a name and a number with no behaviour, so a dictionary is plainer
+      - Yes — every piece of data should be a class
+      - Yes — classes are always faster
+      - No — classes cannot hold strings
+    answer: Probably not — a contact is a name and a number with no behaviour, so a dictionary is plainer
+    explanation_markdown: >-
+      A class earns its place when state and behaviour travel together. A record
+      with no operations of its own is data, and a dictionary says so with less
+      to read. A `ContactBook` class holding the collection and the commands
+      would be a different question, and a much better case.
+
+  - slug: recall-w-truncates
+    position: 2
+    kind: multiple_choice
+    reviews_module_slug: files
+    prompt_markdown: |
+      From Module 8 — your contact book saves on quit with
+      `open("contacts.json", "w")`. What happens to what was there before?
+    options:
+      - It is thrown away the moment the file is opened, which is what you want here
+      - It is kept, and the new data is added after it
+      - Python raises an error because the file exists
+      - Nothing until you call `.write()`
+    answer: It is thrown away the moment the file is opened, which is what you want here
+    explanation_markdown: >-
+      `"w"` truncates immediately. That is correct for this program, because the
+      dictionary in memory is the whole truth and is being written out complete.
+      It would be wrong for a log, where `"a"` is what you want.
+
+  - slug: recall-skip-bad-row
+    position: 3
+    kind: multiple_choice
+    reviews_module_slug: errors
+    prompt_markdown: |
+      From Module 7 — the sales CSV has one row whose amount is not a number.
+      What should the report program do?
+    options:
+      - Catch `ValueError` around just the conversion, count the row as skipped, and carry on
+      - Wrap the whole program in `except Exception` so nothing can stop it
+      - Stop, because bad data is a bug
+      - Replace the bad value with 0 silently
+    answer: Catch `ValueError` around just the conversion, count the row as skipped, and carry on
+    explanation_markdown: >-
+      This is a failure you predicted and know what to do about, which is exactly
+      when to catch. Counting the skipped rows rather than silently dropping them
+      is the difference between handling bad data and hiding it.
+
+  - slug: one-thing-per-function
+    position: 4
+    kind: multiple_choice
+    prompt_markdown: |
+      You have written a function called `load_and_clean_and_report`. What is
+      that name telling you?
+    options:
+      - It is doing three things and should probably be three functions
+      - It is well named and self-documenting
+      - It needs more parameters
+      - It should be a class
+    answer: It is doing three things and should probably be three functions
+    explanation_markdown: >-
+      If you cannot name a function without "and", it is usually more than one
+      function. Split apart, each piece can be read, tested and fixed on its own
+      — and the names get shorter, which is a good sign rather than a
+      coincidence.
+
+  - slug: smallest-thing-that-runs
+    position: 5
+    kind: multiple_choice
+    prompt_markdown: |
+      What is the most reliable way to write a 100-line program?
+    options:
+      - Get the smallest version running, then grow it a piece at a time
+      - Write the whole thing, then run it and fix what breaks
+      - Write every function first, then connect them at the end
+      - Plan it completely on paper before typing anything
+    answer: Get the smallest version running, then grow it a piece at a time
+    explanation_markdown: >-
+      A program that has run correctly at every step tells you exactly which
+      change broke it — the last one. Written whole and run once, a failure could
+      be anywhere in 100 lines. Planning helps, but it is not a substitute for
+      running the thing.

@@ -130,6 +130,7 @@ async def _sync_lesson(db: AsyncSession, lesson_file: LessonFile, module_id: int
             exercise_file.stdin,
             exercise_file.files,
             exercise_file.hints,
+            exercise_file.rubric,
             exercise_file.scaffold_level.value,
             exercise_file.bloom.value,
         )
@@ -142,6 +143,7 @@ async def _sync_lesson(db: AsyncSession, lesson_file: LessonFile, module_id: int
             exercise.stdin = list(exercise_file.stdin)
             exercise.files = dict(exercise_file.files)
             exercise.hints = list(exercise_file.hints)
+            exercise.rubric = list(exercise_file.rubric)
             exercise.scaffold_level = exercise_file.scaffold_level.value
             exercise.bloom = exercise_file.bloom.value
             exercise.content_hash = digest

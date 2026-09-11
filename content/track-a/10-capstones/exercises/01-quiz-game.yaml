@@ -1,0 +1,111 @@
+slug: quiz-game
+lesson: projects
+position: 1
+title: "Capstone: a quiz game"
+bloom: create
+scaffold_level: open_ended
+prompt_markdown: |
+  Write a quiz that asks three questions, scores the answers, and reports a
+  result.
+
+  ### What it must do
+
+  Ask each question with the prompt `<question> ` — the question text, then a
+  single space. The three questions and answers are given to you in `QUIZ`.
+
+  After each answer print `Correct!` or `No — it was <answer>.`
+
+  At the end print two lines:
+
+  ```
+  You scored 2 out of 3.
+  Not bad.
+  ```
+
+  The closing line depends on the score: `Perfect!` for all three, `Not bad.`
+  for one or two, `Better luck next time.` for none.
+
+  ### Rules
+
+  - Answers are compared case-insensitively and ignoring surrounding spaces, so
+    `  paris ` counts as `Paris`.
+  - Do not hard-code the number of questions — loop over `QUIZ`, so adding a
+    fourth entry would just work.
+
+  The answers typed will be `Paris`, `4`, and `blue`, giving a score of 2.
+starter_code: |
+  QUIZ = [
+      ("What is the capital of France?", "Paris"),
+      ("What is 2 + 2?", "4"),
+      ("What colour is a ripe banana?", "yellow"),
+  ]
+
+  # Your quiz goes here.
+stdin:
+  - Paris
+  - "4"
+  - blue
+checks:
+  - kind: stdout
+    label: The whole game plays through correctly
+    expected: |
+      What is the capital of France? Correct!
+      What is 2 + 2? Correct!
+      What colour is a ripe banana? No — it was yellow.
+      You scored 2 out of 3.
+      Not bad.
+  - kind: source
+    label: The questions are looped over, not written out three times
+    require_ast:
+      - For
+  - kind: source
+    label: Organised into at least one function
+    require_ast:
+      - FunctionDef
+rubric:
+  - Could you add a fourth question to `QUIZ` and have it just work, with no other change?
+  - Does each function do one thing, and is its name honest about what that is?
+  - Is the scoring logic separate from the printing, so each could be checked on its own?
+  - Are the comparison rules (case, spaces) applied in one place rather than repeated?
+  - Would someone reading only your `main()` understand what the program does?
+hints:
+  - "Loop with `for question, answer in QUIZ:` — each entry is a tuple you can unpack."
+  - "Compare with `given.strip().lower() == answer.lower()` so case and spaces do not matter."
+  - "Keep a `score` accumulator, exactly as in Module 4."
+  - "A function like `ask(question, answer)` that returns True or False keeps the loop short."
+solution_code: |
+  QUIZ = [
+      ("What is the capital of France?", "Paris"),
+      ("What is 2 + 2?", "4"),
+      ("What colour is a ripe banana?", "yellow"),
+  ]
+
+
+  def ask(question, answer):
+      given = input(f"{question} ")
+      if given.strip().lower() == answer.lower():
+          print("Correct!")
+          return True
+      print(f"No — it was {answer}.")
+      return False
+
+
+  def verdict(score, total):
+      if score == total:
+          return "Perfect!"
+      if score == 0:
+          return "Better luck next time."
+      return "Not bad."
+
+
+  def main():
+      score = 0
+      for question, answer in QUIZ:
+          if ask(question, answer):
+              score += 1
+
+      print(f"You scored {score} out of {len(QUIZ)}.")
+      print(verdict(score, len(QUIZ)))
+
+
+  main()

@@ -1,0 +1,91 @@
+items:
+  - slug: recall-specific-except
+    position: 1
+    kind: multiple_choice
+    reviews_module_slug: errors
+    prompt_markdown: |
+      From Module 7 — a settings file may legitimately not exist yet. Which is
+      right?
+    options:
+      - "`except FileNotFoundError:` around just the `open`"
+      - "`except:` around the whole program"
+      - No handling — let it stop
+      - "`except Exception:` around the whole function"
+    answer: "`except FileNotFoundError:` around just the `open`"
+    explanation_markdown: >-
+      A missing file you have anticipated is exactly what try/except is for — and
+      the same two rules apply: name the specific exception, and keep the block
+      to the line that can fail.
+
+  - slug: recall-input-is-text
+    position: 2
+    kind: predict_output
+    reviews_module_slug: strings
+    prompt_markdown: |
+      From Module 2, in a new setting — a CSV column holds `20`. What does this
+      print?
+    code: |
+      row = {"units": "20"}
+      print(row["units"] * 2)
+    options:
+      - "`2020`"
+      - "`40`"
+      - A TypeError
+      - "`20`"
+    answer: "`2020`"
+    explanation_markdown: >-
+      Multiplying a string repeats it — the same trap as `input()` in Module 2,
+      because a CSV file is text too. Every field arrives as a string, so convert
+      the ones you intend to calculate with.
+
+  - slug: w-is-destructive
+    position: 3
+    kind: multiple_choice
+    prompt_markdown: |
+      A file already holds important data. What does `open("data.txt", "w")` do?
+    options:
+      - Empties it immediately, without warning
+      - Adds to the end
+      - Raises an error because the file exists
+      - Opens it for reading
+    answer: Empties it immediately, without warning
+    explanation_markdown: >-
+      `"w"` truncates the file the moment it is opened, whether or not you go on
+      to write anything. Use `"a"` to add to the end.
+
+  - slug: trailing-newline
+    position: 4
+    kind: predict_output
+    prompt_markdown: |
+      A file's first line is `milk`. What does this print?
+    code: |
+      with open("shopping.txt") as f:
+          line = f.readline()
+      print(line == "milk")
+    options:
+      - "`False`"
+      - "`True`"
+      - A FileNotFoundError
+      - "`milk`"
+    answer: "`False`"
+    explanation_markdown: >-
+      The line read is `"milk\n"` — the newline character comes with it. That is
+      behind most surprises with files. `.strip()` removes it.
+
+  - slug: csv-or-json
+    position: 5
+    kind: multiple_choice
+    prompt_markdown: |
+      You need to save records where each person has a name and a list of scores
+      of varying length. Which format?
+    options:
+      - JSON — it holds nesting, and gives back the types you put in
+      - CSV — every data file should be a table
+      - A plain text file with your own separators
+      - Either is equally suitable
+    answer: JSON — it holds nesting, and gives back the types you put in
+    explanation_markdown: >-
+      A list inside a record is nesting, which a table cannot express without
+      inventing a convention — and then you have to write the code that
+      understands your convention, which is JSON, badly. CSV is right when every
+      record is the same flat shape.

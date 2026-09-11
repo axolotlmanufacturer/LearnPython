@@ -62,6 +62,7 @@ class ExerciseOut(ORMModel):
     scaffold_level: str
     bloom: str
     hints: list[str]
+    rubric: list[str]
     stdin: list[str]
     files: dict[str, str]
     checks: list[dict[str, Any]] = Field(validation_alias="test_cases")

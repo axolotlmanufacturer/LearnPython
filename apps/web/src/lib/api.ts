@@ -25,6 +25,8 @@ export interface ApiExercise {
   scaffold_level: ScaffoldLevel;
   bloom: string;
   hints: string[];
+  /** Self-assessment criteria for open-ended work, shown as a checklist. */
+  rubric: string[];
   stdin: string[];
   /** Seeded into the run's working directory before the learner's code runs. */
   files: Record<string, string>;

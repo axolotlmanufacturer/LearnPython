@@ -157,6 +157,10 @@ class ExerciseFile(StrictModel):
     files: dict[str, str] = Field(default_factory=dict)
     checks: list[Check] = Field(min_length=1)
     hints: list[str] = Field(default_factory=list)
+    # Criteria a learner judges their own work against, for the parts of an
+    # open-ended project that automated checks cannot see — structure, naming,
+    # handling the failures they chose to anticipate. Section 6, feature 10.
+    rubric: list[str] = Field(default_factory=list)
     # Never loaded into the database and never served: it exists so the content
     # tests can prove the exercise is solvable as written (Section 10).
     solution_code: str

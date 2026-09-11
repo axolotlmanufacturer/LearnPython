@@ -1,0 +1,100 @@
+items:
+  - slug: recall-argument-count
+    position: 1
+    kind: multiple_choice
+    reviews_module_slug: functions
+    prompt_markdown: |
+      From Module 6, in a new setting — why does `a.deposit(50)` raise
+      `TypeError: deposit() takes 1 positional argument but 2 were given`?
+
+      ```python
+      class Account:
+          def deposit(amount):
+              ...
+      ```
+    options:
+      - "`deposit` is missing `self`, so the instance has nowhere to go"
+      - "`50` is the wrong type"
+      - The class needs an `__init__`
+      - You cannot call a method with an argument
+    answer: "`deposit` is missing `self`, so the instance has nowhere to go"
+    explanation_markdown: >-
+      `a.deposit(50)` is really `deposit(a, 50)` — two arguments. The definition
+      lists one. It is the same argument-count error as Module 6, and here it
+      nearly always means a missing `self`.
+
+  - slug: recall-empty-guard
+    position: 2
+    kind: multiple_choice
+    reviews_module_slug: functions
+    prompt_markdown: |
+      From Module 6 — why does an `average` method need `if not self.scores:`
+      before it divides?
+    options:
+      - An empty list would make it divide by zero
+      - Lists cannot be summed
+      - "`self` might not exist"
+      - It would return a string otherwise
+    answer: An empty list would make it divide by zero
+    explanation_markdown: >-
+      `len([])` is 0, and dividing by it raises `ZeroDivisionError`. Guarding the
+      empty case is the same habit whether the list lives in a variable, a
+      dictionary, or an attribute.
+
+  - slug: what-is-self
+    position: 3
+    kind: multiple_choice
+    prompt_markdown: What does `self` refer to inside a method?
+    options:
+      - The particular instance the method was called on
+      - The class itself
+      - The method
+      - Whatever was passed as the first argument at the call
+    answer: The particular instance the method was called on
+    explanation_markdown: >-
+      `a.deposit(50)` becomes `deposit(a, 50)`, so `a` lands in `self`. It looks
+      like special syntax and it is an ordinary argument that Python passes for
+      you.
+
+  - slug: local-vs-attribute
+    position: 4
+    kind: predict_output
+    prompt_markdown: What does this print?
+    code: |
+      class Counter:
+          def __init__(self):
+              self.count = 0
+
+          def bump(self):
+              count = self.count + 1
+
+      c = Counter()
+      c.bump()
+      print(c.count)
+    options:
+      - "`0`"
+      - "`1`"
+      - "`None`"
+      - An AttributeError
+    answer: "`0`"
+    explanation_markdown: >-
+      `count` without `self.` is a local variable. It is calculated, then thrown
+      away when the method returns, and the attribute is never touched. The line
+      needed is `self.count = self.count + 1`.
+
+  - slug: when-not-a-class
+    position: 5
+    kind: multiple_choice
+    prompt_markdown: |
+      Which of these is *least* improved by being made a class?
+    options:
+      - "`count_vowels(phrase)` — a calculation with nothing to remember"
+      - A shopping basket that items are added to and totalled
+      - A bank account with a balance that changes
+      - A game player with a name, score and position
+    answer: "`count_vowels(phrase)` — a calculation with nothing to remember"
+    explanation_markdown: >-
+      A class earns its place when state and behaviour travel together and there
+      is more than one instance. A calculation that takes a value and returns an
+      answer has no state to hold, so wrapping it in a class adds structure to
+      read and gives nothing back.

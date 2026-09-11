@@ -30,6 +30,10 @@ export interface PyodideRunnerOptions {
   harnessUrl?: string;
   /** Where the generated copy of worker.js is served from. */
   workerUrl?: string;
+  /** How long the interpreter may take to start before the learner is told
+   * something is wrong. Generous by default — it is a ~14 MB download on a
+   * connection we know nothing about. */
+  loadTimeoutMs?: number;
   /** Build the worker. Overridable so tests can supply a stand-in. */
   createWorker?: () => Worker;
 }
@@ -54,6 +58,10 @@ const DEFAULT_WORKER_URL = "/python/worker.js";
  */
 const DEFAULT_INDEX_URL = process.env.NEXT_PUBLIC_PYODIDE_INDEX_URL || "/pyodide/";
 
+/** Long enough for a 14 MB download on a poor connection, short enough that a
+ * learner is not left guessing. */
+const DEFAULT_LOAD_TIMEOUT_MS = 90_000;
+
 /** Resolve a same-origin path against the page's origin. Left untouched if it
  * is already absolute, and passed through unchanged outside a browser so tests
  * can assert on the value they supplied. */
@@ -77,6 +85,7 @@ export class PyodideRunner implements PythonRunner {
 
   private readonly indexUrl: string;
   private readonly harnessUrl: string;
+  private readonly loadTimeoutMs: number;
   private readonly createWorker: () => Worker;
 
   constructor(options: PyodideRunnerOptions = {}) {
@@ -87,6 +96,7 @@ export class PyodideRunner implements PythonRunner {
     // paths convenient without the worker inheriting the ambiguity.
     this.indexUrl = absolute(options.indexUrl ?? DEFAULT_INDEX_URL);
     this.harnessUrl = absolute(options.harnessUrl ?? "/python/harness.py");
+    this.loadTimeoutMs = options.loadTimeoutMs ?? DEFAULT_LOAD_TIMEOUT_MS;
     const workerUrl = absolute(options.workerUrl ?? DEFAULT_WORKER_URL);
     this.createWorker = options.createWorker ?? (() => new Worker(workerUrl, { type: "module" }));
   }
@@ -111,16 +121,41 @@ export class PyodideRunner implements PythonRunner {
     this.worker = worker;
 
     this.readyPromise = new Promise<void>((resolve, reject) => {
+      // Loading has to be able to give up. A worker whose asset fetch stalls —
+      // a blocked CDN, a captive portal, a connection that dies mid-download —
+      // may never post back at all, and without this the promise never settles:
+      // `run()` awaits it before starting its own timeout, so the learner sits
+      // on "Running…" indefinitely with nothing to read and nothing to try.
+      const loadTimer = setTimeout(() => {
+        this.setState("failed");
+        reject(
+          new Error(
+            `Python did not finish starting after ${Math.round(this.loadTimeoutMs / 1000)} seconds. ` +
+              `This is usually a slow or blocked connection rather than anything you did — ` +
+              `reloading the page will try again.`,
+          ),
+        );
+      }, this.loadTimeoutMs);
+
+      const settleLoad = (outcome: () => void) => {
+        clearTimeout(loadTimer);
+        outcome();
+      };
+
       const onMessage = (event: MessageEvent<WorkerResponse>) => {
         const message = event.data;
         if (message.type === "ready") {
-          this.setState("ready");
-          resolve();
+          settleLoad(() => {
+            this.setState("ready");
+            resolve();
+          });
           return;
         }
         if (message.type === "failure" && message.id === null) {
-          this.setState("failed");
-          reject(new Error(message.message));
+          settleLoad(() => {
+            this.setState("failed");
+            reject(new Error(message.message));
+          });
           return;
         }
         this.handleRunMessage(message);
@@ -131,15 +166,30 @@ export class PyodideRunner implements PythonRunner {
         // A worker-level error can arrive before or after `ready`; only the
         // pre-ready case should reject the load.
         if (this.state === "loading") {
-          this.setState("failed");
-          reject(new Error(event.message || "The Python runtime failed to start."));
+          settleLoad(() => {
+            this.setState("failed");
+            reject(new Error(event.message || "The Python runtime failed to start."));
+          });
         }
       });
 
       this.send({ type: "init", indexUrl: this.indexUrl, harnessUrl: this.harnessUrl });
     });
 
+    // A failed load must not be remembered as the answer for every later
+    // attempt: discard it so pressing Run again genuinely retries.
+    this.readyPromise.catch(() => {
+      if (this.readyPromise) this.discardWorker();
+    });
+
     return this.readyPromise;
+  }
+
+  /** Throw away the current worker so the next `ready()` starts a new one. */
+  private discardWorker(): void {
+    this.worker?.terminate();
+    this.worker = null;
+    this.readyPromise = null;
   }
 
   private send(message: WorkerRequest): void {
@@ -215,9 +265,7 @@ export class PyodideRunner implements PythonRunner {
 
   /** Destroy the interpreter and immediately begin loading a replacement. */
   private restart(): void {
-    this.worker?.terminate();
-    this.worker = null;
-    this.readyPromise = null;
+    this.discardWorker();
     this.setState("restarting");
     if (!this.disposed) {
       // Pre-warm, so the learner's next run does not pay the reload.

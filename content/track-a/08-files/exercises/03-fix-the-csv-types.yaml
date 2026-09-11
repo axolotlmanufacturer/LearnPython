@@ -1,0 +1,49 @@
+slug: fix-the-csv-types
+lesson: csv-and-json
+position: 1
+title: Fix the CSV that will not add up
+bloom: analyze
+scaffold_level: debug
+prompt_markdown: |
+  `sales.csv` holds three rows. This program should print the total units sold —
+  `45` — and instead it prints something that is clearly not a number.
+
+  It does not raise an error, which makes it the more dangerous kind of bug. Run
+  it and look hard at what it actually printed.
+
+  Then fix it. The file is fine; the program's assumption about it is not.
+starter_code: |
+  import csv
+
+  total = 0
+  with open("sales.csv") as f:
+      for row in csv.DictReader(f):
+          total += row["units"]
+
+  print(total)
+files:
+  sales.csv: |
+    product,units
+    widgets,20
+    gadgets,15
+    gizmos,10
+checks:
+  - kind: stdout
+    label: The total is 45
+    expected: "45"
+  - kind: expr
+    label: total is a number, not text
+    expression: total == 45 and not isinstance(total, str)
+hints:
+  - "`total` starts as `0`, but adding a string to it... actually starts by failing. Look at what the first line of the file is."
+  - Every field from a CSV comes back as text, exactly like `input()`.
+  - '`total += int(row["units"])`'
+solution_code: |
+  import csv
+
+  total = 0
+  with open("sales.csv") as f:
+      for row in csv.DictReader(f):
+          total += int(row["units"])
+
+  print(total)
