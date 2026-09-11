@@ -18,25 +18,8 @@ import "server-only";
  */
 
 import { cache } from "react";
-import { cookies } from "next/headers";
 
+import { serverApi } from "./api.server";
 import type { ApiUser } from "./api";
 
-export const getCurrentUser = cache(async (): Promise<ApiUser | null> => {
-  const origin = process.env.API_ORIGIN ?? "http://127.0.0.1:8000";
-  const cookieHeader = (await cookies()).toString();
-  if (!cookieHeader) return null;
-
-  try {
-    const response = await fetch(`${origin}/api/auth/me`, {
-      headers: { cookie: cookieHeader },
-      cache: "no-store",
-    });
-    if (!response.ok) return null;
-    return (await response.json()) as ApiUser;
-  } catch {
-    // The API being unreachable should degrade to "signed out", not a crash on
-    // every page of the site.
-    return null;
-  }
-});
+export const getCurrentUser = cache(async (): Promise<ApiUser | null> => serverApi.me());

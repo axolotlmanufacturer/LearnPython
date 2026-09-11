@@ -1,7 +1,7 @@
 # Architecture Note
 
-Status: accepted for Phases 0–3 (MVP vertical slice)
-Last updated: Phase 0
+Status: accepted for Phases 0–5 (Track A complete; review and recognition built)
+Last updated: Phase 5
 
 This note confirms — or, where it deviates, justifies a deviation from — the stack
 proposed in Section 4 of the product brief and the schema sketched in Section 7. It is
@@ -263,6 +263,62 @@ This deviation is flagged rather than absorbed silently, per Section 12.
 
 ---
 
+## 5.1 Quiz items are graded on the server; exercises are not
+
+Exercises are graded in the browser because that is where the Python interpreter is
+(§1, §3). It would be easy to read that as a general principle and grade quiz items the
+same way. It is not one, and they are not.
+
+An exercise check needs a Python runtime and the learner's program. A quiz answer needs a
+string comparison. Only the first is forced into the browser, so only the first pays the
+price of having its expected results visible there.
+
+So `GET /api/quiz/due` omits `answer` and `explanation_markdown` entirely, and
+`POST /api/quiz/attempts` returns them alongside the verdict. §8 records that the platform
+issues no assessment, which is why visible exercise checks are acceptable — but "nobody is
+being certified" is an argument about cheating, and this is not about cheating. An answer
+sitting in a network response spoils the first attempt for a learner who was not looking
+for it, and retrieval practice with the answer already read is not retrieval practice.
+It costs nothing to withhold, so it is withheld.
+
+Server-side grading also means the _recorded_ attempt is the server's verdict rather than
+the client's claim, which keeps the review schedule honest without any additional
+machinery. Submissions, by contrast, record a `passed` the browser reports — unavoidably,
+and noted where it happens.
+
+## 5.2 Review scheduling: Leitner doubling, not SM-2
+
+`app/spaced_repetition.py` doubles the interval on a correct answer, resets to one day on
+a wrong one, and caps at 64 days.
+
+SM-2 and its descendants were considered. Both halves of what makes them better fit
+poorly here:
+
+- Their ease factor is driven by a self-reported recall grade ("again / hard / good /
+  easy"). Our items are objectively scored, so there is no confidence signal to feed it;
+  derived from correctness alone, SM-2 collapses into a doubling schedule with extra
+  arithmetic and two more columns.
+- They are tuned for decks of thousands reviewed daily for years. A module quiz is a
+  handful of items over a few weeks, and at that scale the difference between an optimal
+  and a roughly-right interval is not something a learner can perceive.
+
+The cap is the part that matters more than the growth rate: without it, eight correct
+answers in a row would push an item beyond any horizon the learner is studying over, and
+the system would have silently stopped reviewing it.
+
+**Eligibility is a pedagogical rule, not a scheduling one.** A never-attempted item
+becomes available when its _module_ is complete, not while the module is in progress. A
+module quiz asks about the whole module; surfacing an item early would test lessons the
+learner has not reached, and a beginner cannot tell "I was never taught this" from "I
+failed to learn this" (Section 2.2).
+
+Nothing new is stored for any of this. Streaks, module badges and the schedule are all
+derived from `progress`, `submissions` and `quiz_attempts` rows, for the same reason
+module status is derived rather than stored (§4): a counter is a second source of truth
+that drifts the first time an update is missed. Phase 5 added no migration.
+
+---
+
 ## 6. Request topology
 
 The browser talks only to the Next.js origin. Next.js rewrites `/api/*` to FastAPI.
@@ -279,10 +335,10 @@ benefit at MVP scale.
 Recorded so they are visible decisions rather than omissions:
 
 - OAuth providers (§5).
-- Spaced repetition, hints, gamification, capstone rubrics — Section 6 Phase 2 features;
-  the schema accommodates them (`QuizItem`/`QuizAttempt`, `Exercise.hints`).
 - Track B content, and the `micropip` availability spike the brief asks for at the start
   of Phase 7 (§1.1).
+- A learner's own view of their review history — which items they keep missing. The data
+  is all in `quiz_attempts`; nothing reads it back yet.
 - `SharedArrayBuffer` interrupt buffer (§1.2).
 - Multi-file exercises and real filesystem exercises — the Section 4.1 revisit triggers.
 - Persisting a learner's in-progress code between visits. A real want, but it needs a

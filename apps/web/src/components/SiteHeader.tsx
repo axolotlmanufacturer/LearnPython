@@ -30,6 +30,9 @@ export function SiteHeader({ user }: { user: ApiUser | null }) {
 
           {user ? (
             <>
+              <Link href="/review" className="hover:text-brand">
+                Review
+              </Link>
               <span className="hidden text-ink-soft sm:inline" data-testid="signed-in-as">
                 {user.display_name || user.email}
               </span>

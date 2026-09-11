@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Markdown } from "@/components/Markdown";
+import { ProgressSummary } from "@/components/ProgressSummary";
 import { api, type ApiTrack } from "@/lib/api";
+import { serverApi } from "@/lib/api.server";
 
 export const metadata: Metadata = { title: "Curriculum" };
 export const dynamic = "force-dynamic";
@@ -10,11 +12,19 @@ export const dynamic = "force-dynamic";
 export default async function LearnPage() {
   let tracks: ApiTrack[] = [];
   let failed = false;
-  try {
-    tracks = await api.tracks();
-  } catch {
+  // The summary is a separate, optional read: it returns null for a signed-out
+  // visitor or an unreachable API, and the page is the same page either way.
+  const [tracksResult, summary] = await Promise.all([
+    api.tracks().catch(() => null),
+    serverApi.summary(),
+  ]);
+  if (tracksResult === null) {
     failed = true;
+  } else {
+    tracks = tracksResult;
   }
+
+  const finished = new Set(summary?.completed_module_slugs ?? []);
 
   return (
     <main id="main" className="mx-auto max-w-4xl px-6 py-14">
@@ -29,6 +39,8 @@ export default async function LearnPage() {
           running and that <code>make content-load</code> has been run.
         </p>
       )}
+
+      <ProgressSummary summary={summary} />
 
       {tracks.map((track) => (
         <section key={track.slug} aria-labelledby={`track-${track.slug}`} className="mt-12">
@@ -68,8 +80,18 @@ export default async function LearnPage() {
                         {module.summary_markdown}
                       </span>
                     </span>
+                    {/* A finished module is marked, an unfinished one carries no
+                        mark at all — there is no "incomplete" state to notice. */}
                     <span className="hidden whitespace-nowrap text-sm text-ink-soft sm:block">
-                      {module.lesson_count} {module.lesson_count === 1 ? "lesson" : "lessons"}
+                      {finished.has(module.slug) ? (
+                        <span className="text-pass">
+                          <span aria-hidden="true">✓</span> Finished
+                        </span>
+                      ) : (
+                        <>
+                          {module.lesson_count} {module.lesson_count === 1 ? "lesson" : "lessons"}
+                        </>
+                      )}
                     </span>
                   </Link>
                 </li>

@@ -100,6 +100,38 @@ export interface ApiModuleProgress {
   status: LessonStatus;
 }
 
+export interface ApiReviewItem {
+  id: number;
+  slug: string;
+  kind: string;
+  prompt_markdown: string;
+  code: string | null;
+  options: string[];
+  module_slug: string;
+  module_title: string;
+  reviews_module_slug: string | null;
+  /** False the first time an item is asked, so the interface can say so. */
+  seen_before: boolean;
+  // No `answer`: quiz items are graded on the server precisely so the answer
+  // is not sitting in this response while the learner is still thinking.
+}
+
+export interface ApiQuizResult {
+  correct: boolean;
+  answer: string;
+  explanation_markdown: string;
+  interval_days: number;
+  next_due_at: string;
+}
+
+export interface ApiSummary {
+  streak_days: number;
+  last_practised_on: string | null;
+  exercises_passed: number;
+  completed_module_slugs: string[];
+  reviews_due: number;
+}
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -212,6 +244,17 @@ export const api = {
 
   recordSubmission: (body: { exercise_slug: string; code: string; passed: boolean }) =>
     request<{ id: number }>("/api/progress/submissions", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  summary: () => request<ApiSummary>("/api/progress/summary"),
+
+  // review — per-learner and schedule-dependent, so never cached
+  dueReviews: () => request<ApiReviewItem[]>("/api/quiz/due"),
+
+  answerReview: (body: { quiz_item_id: number; answer: string }) =>
+    request<ApiQuizResult>("/api/quiz/attempts", {
       method: "POST",
       body: JSON.stringify(body),
     }),
