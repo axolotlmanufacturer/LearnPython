@@ -5,6 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # apps/api/app/config.py -> repository root
@@ -31,6 +32,25 @@ class Settings(BaseSettings):
     # Session cookie. `secure` is forced on outside development.
     session_cookie_name: str = "lp_session"
     session_ttl_days: int = 30
+
+    @field_validator("database_url")
+    @classmethod
+    def must_use_an_async_driver(cls, value: str) -> str:
+        """Reject a synchronous driver URL at startup rather than at first request.
+
+        `postgresql://…` is the spelling everything else in the world uses, so it
+        is the natural thing to paste into a deployment's environment. It is also
+        unusable here: the engine is async. Because the engine is built lazily on
+        first use, an unvalidated bad URL starts the process happily, passes a
+        status-code health check, and then returns 500 to every learner — which
+        is a far worse failure than not booting.
+        """
+        if "+" not in value.split("://", 1)[0]:
+            raise ValueError(
+                f"DATABASE_URL must name an async driver, e.g. "
+                f"postgresql+asyncpg://… — got {value.split('://', 1)[0]}://…"
+            )
+        return value
 
     @property
     def is_production(self) -> bool:

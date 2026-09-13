@@ -79,6 +79,46 @@ resolution, grading — is identical either way.
 | `ENVIRONMENT`      | Set to `production` to put `Secure` on the session cookie |
 | `SESSION_TTL_DAYS` | Defaults to 30                                            |
 
+## Response headers
+
+Set by `next.config.mjs` on every response, and asserted by
+`apps/web/e2e/security-headers.spec.ts` so a refactor cannot quietly drop them.
+If you terminate TLS at a proxy that rewrites headers, check they survive.
+
+| Header                    | Value                                              |
+| ------------------------- | -------------------------------------------------- |
+| `Content-Security-Policy` | See below                                          |
+| `X-Frame-Options`         | `DENY`                                             |
+| `X-Content-Type-Options`  | `nosniff`                                          |
+| `Referrer-Policy`         | `strict-origin-when-cross-origin`                  |
+| `Permissions-Policy`      | camera, microphone, geolocation and payment denied |
+
+### The CSP is unusual, on purpose
+
+This application runs code its users wrote. "Never allow eval" is therefore the
+wrong question; the right ones are how _narrow_ the permission is and what the
+code can reach.
+
+- **`script-src` includes `'wasm-unsafe-eval'`, not `'unsafe-eval'`.** The
+  narrow one permits instantiating a WebAssembly module and nothing else. It
+  does **not** re-enable `eval()` on strings, and the difference is the whole
+  point of listing it explicitly.
+- **`connect-src` is `'self'` plus the interpreter's origin.** This is the
+  directive that actually contains a learner's program: whatever it computes, it
+  has nowhere to send it.
+- **`frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'self'`.** No
+  feature depends on any of them, so none is allowed.
+- **`'unsafe-inline'` for styles remains.** Next.js and CodeMirror both inject
+  styles at runtime. Removing it means threading a nonce through both, which
+  buys little on a site that renders no user-authored HTML.
+
+The interpreter's origin is **derived from `PYODIDE_INDEX_URL`** rather than
+written out, so the policy cannot drift from where the assets are actually
+fetched. Self-hosting narrows it to `'self'` automatically; nothing to change.
+
+Note that the worker at `/python/worker.js` is same-origin and so inherits this
+policy. If you ever move it, the policy has to move with it.
+
 ## Deploying
 
 ```bash
@@ -98,6 +138,20 @@ Re-run `app.content.load` on every deploy. It is idempotent: records whose
 authored content is unchanged are left alone, and existing rows are updated in
 place rather than replaced, so learner submissions keep pointing at the same
 exercises.
+
+### Before the first deploy
+
+| Check                                                              | Why                                                                                                  |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `ENVIRONMENT=production`                                           | Otherwise the session cookie ships without `Secure`                                                  |
+| `DATABASE_URL` uses `postgresql+asyncpg://`                        | A sync driver URL is rejected at startup, so the deploy fails loudly rather than 500-ing per request |
+| `API_ORIGIN` is reachable **from the web server**, not the browser | It is a server-side proxy target, not a public URL                                                   |
+| `GET /api/health` reports `"database": "connected"`                | Confirms the API found the database before traffic does                                              |
+| The site is served over HTTPS                                      | The session cookie is `SameSite=Lax; Secure` in production                                           |
+
+`/api/health` is the readiness probe. It reports the database as
+`unavailable (…)` rather than failing, so a platform health check distinguishes
+"the API is up but cannot reach Postgres" from "the API is down".
 
 ## Free-tier characteristics worth knowing
 

@@ -148,6 +148,10 @@ jobs:
         run: npx playwright install --with-deps chromium
         working-directory: apps/web
 
+      # Includes the accessibility audit (axe-core, WCAG 2.1 AA), the Core Web
+      # Vitals budgets, and the security-header assertions. Those are documented
+      # in docs/accessibility.md and docs/performance.md; running them here is
+      # what keeps those documents true rather than aspirational.
       - name: Run end-to-end suite
         working-directory: apps/web
         run: npm run test:e2e
