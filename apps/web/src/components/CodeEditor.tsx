@@ -71,6 +71,16 @@ export function CodeEditor({
         "aria-label": label,
         "aria-describedby": hintId,
       }),
+      // Wrap long lines instead of scrolling sideways.
+      //
+      // Two reasons, and the accessibility one is the lesser. A horizontally
+      // scrolling editor is a scrollable region, and axe rightly flags it: the
+      // right-hand end of a long line is unreachable without a mouse
+      // (WCAG 2.1.1). But it is also just bad for a beginner — code that runs
+      // off the edge of the box is code they cannot read, on a phone especially,
+      // and Track B's `groupby(...).agg([...])` lines are the first in the
+      // curriculum long enough to hit it.
+      EditorView.lineWrapping,
     ],
     [label, hintId],
   );

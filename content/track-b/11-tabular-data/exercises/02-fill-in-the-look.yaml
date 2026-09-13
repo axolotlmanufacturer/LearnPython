@@ -1,0 +1,51 @@
+slug: fill-in-the-look
+lesson: a-table-in-python
+position: 2
+title: Ask the three questions
+bloom: apply
+scaffold_level: fill_in
+packages: [pandas]
+prompt_markdown: |
+  Before computing anything from a table, ask how big it is, what is in it, and
+  what it looks like.
+
+  Fill in the three blanks so the program prints the number of rows, the number
+  of columns, and the mean of the `count` column rounded to one decimal place.
+
+  `shape` is a pair, so `shape[0]` and `shape[1]` get its two halves.
+starter_code: |
+  import pandas as pd
+
+  readings = pd.read_csv("readings.csv")
+
+  print("rows:", readings.shape[ROW_INDEX])
+  print("columns:", readings.shape[COLUMN_INDEX])
+  print("mean count:", round(readings[COUNT_COLUMN].mean(), 1))
+files:
+  readings.csv: |
+    sample_id,site,temperature_c,count
+    S001,north,12.4,31
+    S002,north,13.1,28
+    S003,south,18.9,44
+    S004,south,19.2,51
+    S005,north,11.8,25
+    S006,south,17.7,39
+checks:
+  - kind: stdout
+    label: Reports 6 rows, 4 columns, and a mean count of 36.3
+    expected: |
+      rows: 6
+      columns: 4
+      mean count: 36.3
+hints:
+  - A pair is indexed like a list — the first item is at 0.
+  - A column is selected by its name as a string, in square brackets.
+  - '`readings["count"]` is the column; `.mean()` averages it.'
+solution_code: |
+  import pandas as pd
+
+  readings = pd.read_csv("readings.csv")
+
+  print("rows:", readings.shape[0])
+  print("columns:", readings.shape[1])
+  print("mean count:", round(readings["count"].mean(), 1))

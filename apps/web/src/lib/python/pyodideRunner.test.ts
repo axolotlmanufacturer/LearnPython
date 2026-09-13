@@ -28,6 +28,10 @@ class FakeWorker implements Pick<Worker, "postMessage" | "terminate"> {
   bootDelayMs = 0;
   /** When true, the worker never reports ready — a stalled asset fetch. */
   neverBoots = false;
+  /** How long a declared package set takes to "download" before the code runs. */
+  packageDelayMs = 0;
+  /** When true, packages start downloading and never finish. */
+  packagesNeverArrive = false;
 
   constructor() {
     FakeWorker.instances.push(this);
@@ -61,6 +65,20 @@ class FakeWorker implements Pick<Worker, "postMessage" | "terminate"> {
       return;
     }
 
+    // Mirror the real worker: announce the download, announce it finished, and
+    // only then start behaving like a run. The code cannot begin before its
+    // packages are in, so the result is scheduled after both.
+    const declared = message.type === "run" ? (message.packages ?? []) : [];
+    let startsAt = 0;
+    if (declared.length > 0) {
+      this.emit("message", { type: "loading-packages", id: message.id, packages: declared });
+      if (this.packagesNeverArrive) return;
+      startsAt = this.packageDelayMs;
+      setTimeout(() => {
+        if (!this.terminated) this.emit("message", { type: "packages-loaded", id: message.id });
+      }, startsAt);
+    }
+
     if (this.behaviour === "silence") return; // stands in for a runaway loop
 
     setTimeout(() => {
@@ -84,7 +102,7 @@ class FakeWorker implements Pick<Worker, "postMessage" | "terminate"> {
           }),
         });
       }
-    }, this.replyDelayMs);
+    }, startsAt + this.replyDelayMs);
   }
 
   terminate(): void {
@@ -341,5 +359,90 @@ describe("PyodideRunner", () => {
 
     expect((await pending).status).toBe("crashed");
     expect(FakeWorker.instances[0]!.terminated).toBe(true);
+  });
+
+  // ------------------------------------------------- packages (Track B)
+
+  it("passes an exercise's declared packages to the worker", async () => {
+    const runner = makeRunner();
+    await runner.run({ code: "import pandas", packages: ["pandas"] });
+
+    const run = FakeWorker.instances[0]!.received.find((message) => message.type === "run");
+    expect(run).toMatchObject({ packages: ["pandas"] });
+    runner.dispose();
+  });
+
+  it("does not count a package download against the run budget", async () => {
+    // The regression this exists to prevent. The run timeout answers "has this
+    // program stopped making progress"; a 30-second scipy download is not an
+    // answer to that, and reporting it as an infinite loop would send a learner
+    // hunting for a bug in code that had not started executing.
+    vi.useFakeTimers();
+    const runner = makeRunner((worker) => {
+      worker.packageDelayMs = 30_000;
+    });
+
+    const pending = runner.run({ code: "import scipy", packages: ["scipy"], timeoutMs: 5_000 });
+    await vi.advanceTimersByTimeAsync(30_010);
+
+    expect((await pending).status).toBe("ok");
+    runner.dispose();
+  });
+
+  it("still stops a runaway loop once its packages have arrived", async () => {
+    // The other half: handing the clock over during the download must not lose
+    // it afterwards, or a Track B exercise would have no timeout at all.
+    vi.useFakeTimers();
+    const runner = makeRunner((worker) => {
+      worker.packageDelayMs = 10_000;
+      worker.behaviour = "silence";
+    });
+
+    const pending = runner.run({
+      code: "import pandas\nwhile True: pass",
+      packages: ["pandas"],
+      timeoutMs: 5_000,
+    });
+    await vi.advanceTimersByTimeAsync(10_010); // packages land, clock restarts
+    await vi.advanceTimersByTimeAsync(5_010); // budget expires
+
+    const result = await pending;
+    expect(result.status).toBe("timeout");
+    expect(result.error?.message).toContain("5 seconds");
+    runner.dispose();
+  });
+
+  it("gives up on a package download that never finishes", async () => {
+    vi.useFakeTimers();
+    const runner = makeRunner((worker) => {
+      worker.packagesNeverArrive = true;
+    });
+
+    const pending = runner.run({ code: "import scipy", packages: ["scipy"] });
+    await vi.advanceTimersByTimeAsync(90_010);
+
+    const result = await pending;
+    // Reported as an engine problem, not as the learner's code timing out.
+    expect(result.status).toBe("crashed");
+    expect(result.error?.message).toContain("scipy");
+    runner.dispose();
+  });
+
+  it("reports the download through the state subscription", async () => {
+    vi.useFakeTimers();
+    const states: string[] = [];
+    const runner = makeRunner((worker) => {
+      worker.packageDelayMs = 1_000;
+    });
+    runner.subscribe((state) => states.push(state));
+
+    const pending = runner.run({ code: "import pandas", packages: ["pandas"] });
+    await vi.advanceTimersByTimeAsync(1_010);
+    await pending;
+
+    // So the interface can say what the pause is for rather than showing an
+    // undifferentiated spinner.
+    expect(states).toContain("loading-packages");
+    runner.dispose();
   });
 });

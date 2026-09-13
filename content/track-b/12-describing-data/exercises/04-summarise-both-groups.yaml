@@ -1,0 +1,61 @@
+slug: summarise-both-groups
+lesson: summarising-with-pandas
+position: 2
+title: Report a comparison honestly
+bloom: apply
+scaffold_level: write_from_spec
+packages: [pandas]
+prompt_markdown: |
+  `counts.csv` holds counts from two sites.
+
+  Write a program that prints, for each site, one line of the form:
+
+  ```
+  north: n=5 mean=29.20 sd=3.03
+  ```
+
+  Sites in alphabetical order, mean and standard deviation to two decimal places.
+  Use pandas' standard deviation, not a hand-rolled one.
+
+  Reporting the mean without `n` and the spread beside it is the single most
+  common way a comparison misleads its reader — so this exercise will not accept
+  a mean on its own.
+starter_code: |
+  import pandas as pd
+
+  counts = pd.read_csv("counts.csv")
+
+  # Your code here.
+files:
+  counts.csv: |
+    site,count
+    north,31
+    north,28
+    north,25
+    north,33
+    north,29
+    south,44
+    south,51
+    south,39
+    south,60
+    south,47
+checks:
+  - kind: stdout
+    label: Reports n, mean and standard deviation for each site
+    expected: |
+      north: n=5 mean=29.20 sd=3.03
+      south: n=5 mean=48.20 sd=7.92
+hints:
+  - '`groupby("site")["count"].agg(["count", "mean", "std"])` gives you a table with one row per site.'
+  - "You can loop over that table's rows with `for site, row in summary.iterrows():`."
+  - 'An f-string can format to two places: `f"{row[''mean'']:.2f}"`.'
+  - "groupby sorts the groups alphabetically by default, so the order is already right."
+solution_code: |
+  import pandas as pd
+
+  counts = pd.read_csv("counts.csv")
+
+  summary = counts.groupby("site")["count"].agg(["count", "mean", "std"])
+
+  for site, row in summary.iterrows():
+      print(f"{site}: n={int(row['count'])} mean={row['mean']:.2f} sd={row['std']:.2f}")

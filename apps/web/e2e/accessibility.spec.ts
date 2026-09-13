@@ -70,6 +70,10 @@ test.describe("accessibility", () => {
     { name: "curriculum", path: "/learn" },
     { name: "module", path: "/learn/orientation" },
     { name: "lesson with exercises", path: "/learn/orientation/what-a-program-is" },
+    // A Track B lesson renders tables in its prose, which no Track A page does —
+    // and a table is one of the shapes automated rules are actually good at
+    // catching (missing headers, cells with no scope).
+    { name: "statistics lesson", path: "/learn/describing-data/summarising-with-pandas" },
   ];
 
   for (const { name, path } of pages) {

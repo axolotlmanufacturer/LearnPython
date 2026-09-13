@@ -1,0 +1,49 @@
+slug: modify-to-group
+lesson: summarising-with-pandas
+position: 1
+title: Split the summary by site
+bloom: apply
+scaffold_level: modify
+packages: [pandas]
+prompt_markdown: |
+  This program prints the mean count across every sample together, which hides
+  the thing anyone would actually want to know.
+
+  Change it to print the mean count **for each site**, rounded to two decimal
+  places. Leave the rounding as it is.
+starter_code: |
+  import pandas as pd
+
+  counts = pd.read_csv("counts.csv")
+
+  print(counts["count"].mean().round(2))
+files:
+  counts.csv: |
+    site,count
+    north,31
+    north,28
+    north,25
+    north,33
+    north,29
+    south,44
+    south,51
+    south,39
+    south,60
+    south,47
+checks:
+  - kind: stdout
+    label: Reports a mean of 29.2 for north and 48.2 for south
+    expected: |
+      site
+      north    29.2
+      south    48.2
+      Name: count, dtype: float64
+hints:
+  - "`groupby` takes the name of the column to split on."
+  - 'The shape is `frame.groupby("site")["count"].mean()`.'
+solution_code: |
+  import pandas as pd
+
+  counts = pd.read_csv("counts.csv")
+
+  print(counts.groupby("site")["count"].mean().round(2))

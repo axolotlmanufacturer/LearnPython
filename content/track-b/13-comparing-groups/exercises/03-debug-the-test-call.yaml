@@ -1,0 +1,46 @@
+slug: debug-the-test-call
+lesson: the-t-test
+position: 1
+title: Find the fault in the comparison
+bloom: analyze
+scaffold_level: debug
+packages: [scipy]
+prompt_markdown: |
+  This is meant to compare the two groups against each other. It runs without
+  error and prints a p-value of 1.0 — which should immediately look wrong, since
+  the two groups plainly differ.
+
+  Find the mistake and fix it, so the program prints the t statistic and p-value
+  for the real comparison, each rounded to three decimal places.
+
+  A test that runs is not a test that answers your question. This is why a result
+  that looks too clean deserves a second look.
+starter_code: |
+  from scipy import stats
+
+  control = [16.2, 21.4, 15.8, 19.9, 17.1, 20.1]
+  treated = [24.3, 19.8, 26.1, 22.4, 25.5, 20.2]
+
+  result = stats.ttest_ind(treated, treated, equal_var=False)
+
+  print("t:", round(result.statistic, 3))
+  print("p:", round(result.pvalue, 3))
+checks:
+  - kind: stdout
+    label: Compares treated against control, giving t = 3.187 and p = 0.01
+    expected: |
+      t: 3.187
+      p: 0.01
+hints:
+  - Look carefully at the two arguments being passed to the test.
+  - Comparing a group with itself must give a difference of exactly zero.
+solution_code: |
+  from scipy import stats
+
+  control = [16.2, 21.4, 15.8, 19.9, 17.1, 20.1]
+  treated = [24.3, 19.8, 26.1, 22.4, 25.5, 20.2]
+
+  result = stats.ttest_ind(treated, control, equal_var=False)
+
+  print("t:", round(result.statistic, 3))
+  print("p:", round(result.pvalue, 3))

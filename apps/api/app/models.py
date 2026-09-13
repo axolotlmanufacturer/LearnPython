@@ -32,6 +32,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -187,6 +188,11 @@ class Exercise(Base):
     stdin: Mapped[list[str]] = mapped_column(JsonType, nullable=False, default=list)
     # Files seeded into the run's working directory before the code runs.
     files: Mapped[dict[str, str]] = mapped_column(JsonType, nullable=False, default=dict)
+    # Pyodide packages loaded before the code runs, e.g. ["pandas"]. Empty for
+    # every Track A exercise; see docs/spike-scientific-stack.md.
+    packages: Mapped[list[str]] = mapped_column(
+        JsonType, nullable=False, default=list, server_default=text("'[]'")
+    )
     # Ordered, revealed one at a time (Section 6, Phase 2 feature).
     hints: Mapped[list[str]] = mapped_column(JsonType, nullable=False, default=list)
     # Self-assessment criteria for open-ended work (Section 6, feature 10).

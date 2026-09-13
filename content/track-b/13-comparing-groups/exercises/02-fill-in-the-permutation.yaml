@@ -1,0 +1,70 @@
+slug: fill-in-the-permutation
+lesson: could-it-be-chance
+position: 2
+title: Count how often chance does it
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  Complete the permutation test. The logic: shuffle the pooled values, split them
+  back into two groups of five, and count how often the random difference is at
+  least as large as the one actually observed.
+
+  Fill in the three blanks. The seed is fixed so the answer is reproducible.
+starter_code: |
+  import random
+
+  before = [12, 15, 11, 14, 13]
+  after = [18, 16, 19, 17, 20]
+
+  def mean(values):
+      return sum(values) / len(values)
+
+  observed = mean(after) - mean(before)
+  everything = before + after
+
+  random.seed(7)
+  at_least_as_big = 0
+  trials = 2000
+
+  for _ in range(trials):
+      random.shuffle(everything)
+      difference = mean(everything[5:]) - mean(everything[:FIRST_GROUP_SIZE])
+      if abs(difference) >= abs(OBSERVED_NAME):
+          at_least_as_big += 1
+
+  print("observed:", observed)
+  print("p:", at_least_as_big / TRIALS_NAME)
+checks:
+  - kind: stdout
+    label: Reports the observed difference of 5.0 and a p-value near 0.008
+    expected: |
+      observed: 5.0
+      p: 0.008
+hints:
+  - The first group has as many values as `before` did.
+  - You are comparing each shuffled difference against the real one.
+  - A proportion is the count divided by how many trials you ran.
+solution_code: |
+  import random
+
+  before = [12, 15, 11, 14, 13]
+  after = [18, 16, 19, 17, 20]
+
+  def mean(values):
+      return sum(values) / len(values)
+
+  observed = mean(after) - mean(before)
+  everything = before + after
+
+  random.seed(7)
+  at_least_as_big = 0
+  trials = 2000
+
+  for _ in range(trials):
+      random.shuffle(everything)
+      difference = mean(everything[5:]) - mean(everything[:5])
+      if abs(difference) >= abs(observed):
+          at_least_as_big += 1
+
+  print("observed:", observed)
+  print("p:", at_least_as_big / trials)

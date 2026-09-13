@@ -75,6 +75,7 @@ export function ExerciseCard({
         code,
         stdin: exercise.stdin,
         files: exercise.files,
+        packages: exercise.packages,
         checks: exercise.checks,
       });
       setResult(outcome);
@@ -90,6 +91,7 @@ export function ExerciseCard({
     code,
     exercise.checks,
     exercise.files,
+    exercise.packages,
     exercise.slug,
     exercise.stdin,
     onAttempt,
@@ -103,7 +105,8 @@ export function ExerciseCard({
     setResult(null);
   }, [exercise.starter_code]);
 
-  const busy = running || state === "loading" || state === "restarting";
+  const busy =
+    running || state === "loading" || state === "restarting" || state === "loading-packages";
   const hintsLeft = exercise.hints.length - hintsShown;
 
   return (

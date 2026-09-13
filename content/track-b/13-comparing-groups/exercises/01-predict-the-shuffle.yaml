@@ -1,0 +1,45 @@
+slug: predict-the-shuffle
+lesson: could-it-be-chance
+position: 1
+title: Predict what shuffling destroys
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  This shuffles the labels once and reports the difference before and after.
+
+  You cannot predict the shuffled number — that is the point of a shuffle. But
+  you can predict the other two lines. Work out what the pooled mean is before
+  and after shuffling, and why.
+starter_code: |
+  import random
+
+  control = [10, 12, 14]
+  treated = [20, 22, 24]
+
+  everything = control + treated
+  print("pooled mean before:", sum(everything) / len(everything))
+
+  random.seed(3)
+  random.shuffle(everything)
+  print("pooled mean after: ", sum(everything) / len(everything))
+  print("still six values:  ", len(everything) == 6)
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      pooled mean before: 17.0
+      pooled mean after:  17.0
+      still six values:   True
+solution_code: |
+  import random
+
+  control = [10, 12, 14]
+  treated = [20, 22, 24]
+
+  everything = control + treated
+  print("pooled mean before:", sum(everything) / len(everything))
+
+  random.seed(3)
+  random.shuffle(everything)
+  print("pooled mean after: ", sum(everything) / len(everything))
+  print("still six values:  ", len(everything) == 6)

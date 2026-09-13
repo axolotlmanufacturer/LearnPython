@@ -1,0 +1,22 @@
+slug: tabular-data
+track: track-b
+position: 11
+title: Tables of Measurements
+summary_markdown: >-
+  Real data arrives as a table: rows of things you measured, columns of what you
+  measured about them. This module is about getting such a table into Python,
+  looking at it honestly, and dealing with the fact that some of it will be
+  missing or wrong. No statistics yet — you cannot summarise data you have not
+  looked at.
+
+objectives:
+  - text: Describe what a DataFrame is and how it differs from a list of lists
+    bloom: understand
+  - text: Load a CSV file and report its shape, columns and first rows
+    bloom: apply
+  - text: Select a column, filter rows by a condition, and add a derived column
+    bloom: apply
+  - text: Find missing values and decide, with a stated reason, what to do about them
+    bloom: evaluate
+  - text: Diagnose a KeyError from a mistyped column name
+    bloom: analyze

@@ -80,6 +80,8 @@ export class PyodideRunner implements PythonRunner {
     id: number;
     resolve: (result: ExecutionResult) => void;
     timer: ReturnType<typeof setTimeout>;
+    /** Budget for the code itself, re-armed once packages have finished loading. */
+    timeoutMs: number;
   } | null = null;
   private disposed = false;
 
@@ -201,6 +203,27 @@ export class PyodideRunner implements PythonRunner {
     if (!pending || message.type === "ready") return;
     if (message.id !== pending.id) return; // A late reply from a superseded run.
 
+    // A package download is not the learner's program failing to terminate, so
+    // it must not be measured by the run budget. Hand the clock over to the
+    // load timeout while the wheels arrive, then start the run budget fresh
+    // when the code actually begins. See PackagesLoadedMessage in protocol.ts.
+    if (message.type === "loading-packages") {
+      clearTimeout(pending.timer);
+      pending.timer = setTimeout(
+        () => this.failPending(`Downloading ${message.packages.join(", ")} took too long.`),
+        this.loadTimeoutMs,
+      );
+      this.setState("loading-packages");
+      return;
+    }
+
+    if (message.type === "packages-loaded") {
+      clearTimeout(pending.timer);
+      pending.timer = setTimeout(() => this.timeOutPending(pending.timeoutMs), pending.timeoutMs);
+      this.setState("running");
+      return;
+    }
+
     clearTimeout(pending.timer);
     this.pending = null;
     this.setState("ready");
@@ -238,21 +261,16 @@ export class PyodideRunner implements PythonRunner {
     this.setState("running");
 
     return new Promise<ExecutionResult>((resolve) => {
-      const timer = setTimeout(() => {
-        this.pending = null;
-        this.restart();
-        resolve({
-          ...engineFailure(
-            `Your program was still running after ${Math.round(timeoutMs / 1000)} seconds, so it was stopped.`,
-            "timeout",
-          ),
-        });
-      }, timeoutMs);
-
-      this.pending = { id, resolve, timer };
+      this.pending = {
+        id,
+        resolve,
+        timeoutMs,
+        timer: setTimeout(() => this.timeOutPending(timeoutMs), timeoutMs),
+      };
       this.send({
         type: "run",
         id,
+        packages: request.packages ?? [],
         payload: JSON.stringify({
           code: request.code,
           stdin: request.stdin ?? [],
@@ -261,6 +279,32 @@ export class PyodideRunner implements PythonRunner {
         }),
       });
     });
+  }
+
+  /** The learner's code did not finish in its budget: stop it and say so. */
+  private timeOutPending(timeoutMs: number): void {
+    this.resolvePending(
+      engineFailure(
+        `Your program was still running after ${Math.round(timeoutMs / 1000)} seconds, so it was stopped.`,
+        "timeout",
+      ),
+    );
+  }
+
+  /** The engine gave up on something that was not the learner's code. */
+  private failPending(message: string): void {
+    this.resolvePending(engineFailure(message));
+  }
+
+  private resolvePending(result: ExecutionResult): void {
+    const pending = this.pending;
+    if (!pending) return;
+    clearTimeout(pending.timer);
+    this.pending = null;
+    // The worker is mid-something we have stopped waiting for, so it is no
+    // longer trustworthy — replace it rather than reuse it.
+    this.restart();
+    pending.resolve(result);
   }
 
   /** Destroy the interpreter and immediately begin loading a replacement. */

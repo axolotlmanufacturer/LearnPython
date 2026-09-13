@@ -1,0 +1,43 @@
+slug: fill-in-the-deviation
+lesson: middle-and-spread
+position: 2
+title: Build a standard deviation from its definition
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  The standard deviation, one step at a time: subtract the mean from each value,
+  square the results, average those, then square-root it back into the original
+  units.
+
+  Fill in the three blanks. Print the mean and the standard deviation, each
+  rounded to two decimal places.
+starter_code: |
+  values = [4, 8, 6, 5, 3, 10]
+
+  mean = sum(values) / len(values)
+  squared_deviations = [(value - MEAN_NAME) ** 2 for value in values]
+  variance = sum(squared_deviations) / SQUARED_COUNT
+  sd = variance ** POWER_FOR_SQUARE_ROOT
+
+  print(round(mean, 2))
+  print(round(sd, 2))
+checks:
+  - kind: stdout
+    label: Reports a mean of 6.0 and a standard deviation of 2.38
+    expected: |
+      6.0
+      2.38
+hints:
+  - The deviation of a value is how far it sits from the mean you just computed.
+  - Averaging the squares means dividing by how many of them there are.
+  - A square root is the power one half — `0.5`.
+solution_code: |
+  values = [4, 8, 6, 5, 3, 10]
+
+  mean = sum(values) / len(values)
+  squared_deviations = [(value - mean) ** 2 for value in values]
+  variance = sum(squared_deviations) / len(squared_deviations)
+  sd = variance ** 0.5
+
+  print(round(mean, 2))
+  print(round(sd, 2))

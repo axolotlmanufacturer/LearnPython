@@ -141,6 +141,30 @@ class Objective(StrictModel):
     bloom: Bloom
 
 
+#: Pyodide packages an exercise may declare.
+#:
+#: An allow-list rather than free text, for two reasons. The small one is typos:
+#: `panadas` would otherwise fail at a learner's keystroke rather than in CI. The
+#: real one is that each entry is a **bandwidth decision**. These wheels are the
+#: largest thing the platform serves after the interpreter itself — scipy alone
+#: exceeds it — so adding one should require editing this list and saying why,
+#: not just typing a name into an exercise.
+#:
+#: That these names exist in the interpreter we actually ship is checked
+#: separately, web-side, against `pyodide-lock.json`; this list cannot verify
+#: itself. See docs/spike-scientific-stack.md.
+ALLOWED_PACKAGES = {
+    # Tabular data. Track B Module 11 onwards.
+    "pandas",
+    # numpy arrives as a pandas dependency, but an exercise that uses it
+    # directly should say so rather than relying on that.
+    "numpy",
+    # Statistical tests. Deliberately not introduced until a learner has
+    # computed the same thing by hand (Module 13).
+    "scipy",
+}
+
+
 class ExerciseFile(StrictModel):
     slug: str = Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     lesson: str
@@ -156,6 +180,11 @@ class ExerciseFile(StrictModel):
     # directory, so nothing leaks between exercises.
     files: dict[str, str] = Field(default_factory=dict)
     checks: list[Check] = Field(min_length=1)
+    # Pyodide packages this exercise needs, e.g. ["pandas"]. Loaded on demand
+    # from the interpreter's own origin, per exercise rather than per track, so
+    # a learner pays for scipy at the moment a test stops being something they
+    # compute by hand. See docs/spike-scientific-stack.md §3.
+    packages: list[str] = Field(default_factory=list)
     hints: list[str] = Field(default_factory=list)
     # Criteria a learner judges their own work against, for the parts of an
     # open-ended project that automated checks cannot see — structure, naming,
@@ -164,6 +193,18 @@ class ExerciseFile(StrictModel):
     # Never loaded into the database and never served: it exists so the content
     # tests can prove the exercise is solvable as written (Section 10).
     solution_code: str
+
+    @field_validator("packages")
+    @classmethod
+    def packages_are_allowed(cls, packages: list[str]) -> list[str]:
+        unknown = sorted(set(packages) - ALLOWED_PACKAGES)
+        if unknown:
+            raise ValueError(
+                f"{', '.join(unknown)} not in ALLOWED_PACKAGES. Adding one is a bandwidth "
+                f"decision — see the note on that list in content/schema.py. "
+                f"Currently allowed: {', '.join(sorted(ALLOWED_PACKAGES))}"
+            )
+        return packages
 
     @field_validator("hints")
     @classmethod

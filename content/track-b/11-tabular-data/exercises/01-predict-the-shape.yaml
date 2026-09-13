@@ -1,0 +1,42 @@
+slug: predict-the-shape
+lesson: a-table-in-python
+position: 1
+title: Predict what the table looks like
+bloom: understand
+scaffold_level: predict
+packages: [pandas]
+prompt_markdown: |
+  The file `readings.csv` holds six rows of measurements.
+
+  Before you run this, work out the two printed lines in your head. `shape` is
+  `(rows, columns)` — and remember the header line names the columns, it is not
+  one of the rows.
+starter_code: |
+  import pandas as pd
+
+  readings = pd.read_csv("readings.csv")
+
+  print(readings.shape)
+  print(list(readings.columns))
+files:
+  readings.csv: |
+    sample_id,site,temperature_c,count
+    S001,north,12.4,31
+    S002,north,13.1,28
+    S003,south,18.9,44
+    S004,south,19.2,51
+    S005,north,11.8,25
+    S006,south,17.7,39
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      (6, 4)
+      ['sample_id', 'site', 'temperature_c', 'count']
+solution_code: |
+  import pandas as pd
+
+  readings = pd.read_csv("readings.csv")
+
+  print(readings.shape)
+  print(list(readings.columns))

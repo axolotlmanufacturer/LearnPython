@@ -1,0 +1,69 @@
+slug: report-the-comparison
+lesson: the-t-test
+position: 2
+title: Write a sentence a reader can evaluate
+bloom: evaluate
+scaffold_level: write_from_spec
+packages: [pandas, scipy]
+prompt_markdown: |
+  `plots.csv` records yield from two field plots, one treated and one not.
+
+  Write a program that loads it, compares the two groups with Welch's t-test, and
+  prints exactly two lines:
+
+  ```
+  treated - control = 4.63 g
+  p = 0.0099
+  ```
+
+  The difference to two decimal places, the p-value to four.
+
+  Note what is being asked for: the effect **and** the p-value. "The difference
+  was significant" is not a reportable result — significant of what, and how
+  much? The number a reader actually needs is the first line.
+starter_code: |
+  import pandas as pd
+  from scipy import stats
+
+  plots = pd.read_csv("plots.csv")
+
+  # Your code here.
+files:
+  plots.csv: |
+    group,yield_g
+    control,16.2
+    control,21.4
+    control,15.8
+    control,19.9
+    control,17.1
+    control,20.1
+    treated,24.3
+    treated,19.8
+    treated,26.1
+    treated,22.4
+    treated,25.5
+    treated,20.2
+checks:
+  - kind: stdout
+    label: Reports the difference in means and the p-value
+    expected: |
+      treated - control = 4.63 g
+      p = 0.0099
+hints:
+  - 'Filter each group out first: `plots[plots["group"] == "treated"]["yield_g"]`.'
+  - "`stats.ttest_ind(a, b, equal_var=False)` gives `.statistic` and `.pvalue`."
+  - 'Format with an f-string: `f"{difference:.2f}"` and `f"{p:.4f}"`.'
+solution_code: |
+  import pandas as pd
+  from scipy import stats
+
+  plots = pd.read_csv("plots.csv")
+
+  treated = plots[plots["group"] == "treated"]["yield_g"]
+  control = plots[plots["group"] == "control"]["yield_g"]
+
+  difference = treated.mean() - control.mean()
+  result = stats.ttest_ind(treated, control, equal_var=False)
+
+  print(f"treated - control = {difference:.2f} g")
+  print(f"p = {result.pvalue:.4f}")

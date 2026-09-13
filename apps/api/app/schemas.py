@@ -65,6 +65,7 @@ class ExerciseOut(ORMModel):
     rubric: list[str]
     stdin: list[str]
     files: dict[str, str]
+    packages: list[str]
     checks: list[dict[str, Any]] = Field(validation_alias="test_cases")
 
 

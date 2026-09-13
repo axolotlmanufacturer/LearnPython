@@ -1,0 +1,464 @@
+slug: judge-the-claim
+lesson: the-t-test
+position: 3
+title: Judge whether the claim survives the numbers
+bloom: evaluate
+scaffold_level: write_from_spec
+packages: [pandas, scipy]
+prompt_markdown: |
+  A colleague reports: *"Our supplement significantly increases growth."*
+
+  Their data is in `growth.csv`. It is a large study — 400 plants — and their
+  p-value really is small.
+
+  Write a program printing exactly three lines:
+
+  ```
+  difference = 0.21 cm
+  p = 0.0004
+  claim holds: False
+  ```
+
+  Print `claim holds: True` only if the difference is **at least 1 cm** as well
+  as having p below 0.05. A fifth of a millimetre of extra growth is not what
+  anyone means by "increases growth", however small the p-value gets — and with
+  400 plants, almost any difference will clear a significance threshold.
+
+  This is the exercise where the two numbers come apart. Which one answers the
+  colleague's claim?
+starter_code: |
+  import pandas as pd
+  from scipy import stats
+
+  growth = pd.read_csv("growth.csv")
+
+  # Your code here.
+files:
+  growth.csv: |
+    group,height_cm
+    plain,20.17
+    plain,20.6
+    plain,20.46
+    plain,21.2
+    plain,20.75
+    plain,20.09
+    plain,20.37
+    plain,19.09
+    plain,20.13
+    plain,18.74
+    plain,19.57
+    plain,19.94
+    plain,19.97
+    plain,20.56
+    plain,20.06
+    plain,19.8
+    plain,19.78
+    plain,19.53
+    plain,20.84
+    plain,19.82
+    plain,19.56
+    plain,20.17
+    plain,19.84
+    plain,19.17
+    plain,20.15
+    plain,19.25
+    plain,19.3
+    plain,19.8
+    plain,20.61
+    plain,20.18
+    plain,19.48
+    plain,19.6
+    plain,19.54
+    plain,18.84
+    plain,19.35
+    plain,19.73
+    plain,18.92
+    plain,20.0
+    plain,21.06
+    plain,19.08
+    plain,19.85
+    plain,20.03
+    plain,20.93
+    plain,20.64
+    plain,20.1
+    plain,19.8
+    plain,19.71
+    plain,20.06
+    plain,19.27
+    plain,20.36
+    plain,19.83
+    plain,19.19
+    plain,20.32
+    plain,20.37
+    plain,19.85
+    plain,20.7
+    plain,20.96
+    plain,19.74
+    plain,19.12
+    plain,20.19
+    plain,20.29
+    plain,20.39
+    plain,20.28
+    plain,19.93
+    plain,19.31
+    plain,20.44
+    plain,19.18
+    plain,19.13
+    plain,21.0
+    plain,19.82
+    plain,19.1
+    plain,19.91
+    plain,19.74
+    plain,19.74
+    plain,20.45
+    plain,20.57
+    plain,19.7
+    plain,19.09
+    plain,19.4
+    plain,19.72
+    plain,20.22
+    plain,19.9
+    plain,20.26
+    plain,19.84
+    plain,20.26
+    plain,20.89
+    plain,20.37
+    plain,19.61
+    plain,19.86
+    plain,20.65
+    plain,19.83
+    plain,20.15
+    plain,20.14
+    plain,19.71
+    plain,20.2
+    plain,19.91
+    plain,20.31
+    plain,20.92
+    plain,20.97
+    plain,19.16
+    plain,19.37
+    plain,20.02
+    plain,20.43
+    plain,20.02
+    plain,20.17
+    plain,20.89
+    plain,20.06
+    plain,19.9
+    plain,21.1
+    plain,19.53
+    plain,19.33
+    plain,20.23
+    plain,19.63
+    plain,18.8
+    plain,20.98
+    plain,20.14
+    plain,20.21
+    plain,20.7
+    plain,20.41
+    plain,21.3
+    plain,20.94
+    plain,20.03
+    plain,19.59
+    plain,21.19
+    plain,19.2
+    plain,19.62
+    plain,20.26
+    plain,19.82
+    plain,19.68
+    plain,19.93
+    plain,20.24
+    plain,19.18
+    plain,19.85
+    plain,21.18
+    plain,18.69
+    plain,19.94
+    plain,19.63
+    plain,18.94
+    plain,19.45
+    plain,19.91
+    plain,20.03
+    plain,20.02
+    plain,19.96
+    plain,20.24
+    plain,20.17
+    plain,21.1
+    plain,20.15
+    plain,19.32
+    plain,21.03
+    plain,19.74
+    plain,20.59
+    plain,20.48
+    plain,20.97
+    plain,20.93
+    plain,20.54
+    plain,20.33
+    plain,20.06
+    plain,19.1
+    plain,19.8
+    plain,20.24
+    plain,19.94
+    plain,19.19
+    plain,20.0
+    plain,20.52
+    plain,20.0
+    plain,21.16
+    plain,18.88
+    plain,20.34
+    plain,20.92
+    plain,19.98
+    plain,19.95
+    plain,20.62
+    plain,19.39
+    plain,19.6
+    plain,21.39
+    plain,20.45
+    plain,19.18
+    plain,20.32
+    plain,18.99
+    plain,18.67
+    plain,19.33
+    plain,20.21
+    plain,19.65
+    plain,20.02
+    plain,20.52
+    plain,20.43
+    plain,20.53
+    plain,20.51
+    plain,20.26
+    plain,19.63
+    plain,19.75
+    plain,19.79
+    plain,19.52
+    plain,19.37
+    plain,20.15
+    plain,19.92
+    plain,19.89
+    plain,20.01
+    plain,20.97
+    plain,20.05
+    supplement,20.03
+    supplement,20.23
+    supplement,20.81
+    supplement,19.68
+    supplement,19.28
+    supplement,19.92
+    supplement,20.76
+    supplement,20.16
+    supplement,20.37
+    supplement,20.58
+    supplement,19.75
+    supplement,21.18
+    supplement,20.5
+    supplement,20.49
+    supplement,21.09
+    supplement,21.31
+    supplement,20.28
+    supplement,19.54
+    supplement,19.65
+    supplement,20.21
+    supplement,19.95
+    supplement,19.81
+    supplement,20.38
+    supplement,20.23
+    supplement,20.99
+    supplement,19.59
+    supplement,20.87
+    supplement,21.66
+    supplement,19.47
+    supplement,20.16
+    supplement,20.77
+    supplement,20.38
+    supplement,20.22
+    supplement,19.35
+    supplement,20.25
+    supplement,20.41
+    supplement,20.21
+    supplement,21.0
+    supplement,20.35
+    supplement,20.35
+    supplement,20.27
+    supplement,20.37
+    supplement,19.76
+    supplement,19.71
+    supplement,20.32
+    supplement,20.13
+    supplement,20.92
+    supplement,20.43
+    supplement,20.77
+    supplement,19.55
+    supplement,19.49
+    supplement,20.87
+    supplement,20.71
+    supplement,21.29
+    supplement,20.6
+    supplement,19.43
+    supplement,21.16
+    supplement,19.84
+    supplement,20.25
+    supplement,19.41
+    supplement,20.26
+    supplement,19.66
+    supplement,20.43
+    supplement,20.56
+    supplement,20.62
+    supplement,19.13
+    supplement,20.52
+    supplement,19.94
+    supplement,20.29
+    supplement,21.27
+    supplement,19.3
+    supplement,19.01
+    supplement,19.23
+    supplement,20.04
+    supplement,19.99
+    supplement,20.37
+    supplement,20.6
+    supplement,20.62
+    supplement,20.65
+    supplement,21.47
+    supplement,20.8
+    supplement,20.12
+    supplement,19.97
+    supplement,20.17
+    supplement,19.37
+    supplement,19.86
+    supplement,20.31
+    supplement,20.15
+    supplement,20.14
+    supplement,20.71
+    supplement,21.09
+    supplement,19.51
+    supplement,20.46
+    supplement,20.1
+    supplement,20.4
+    supplement,20.34
+    supplement,20.13
+    supplement,19.05
+    supplement,20.2
+    supplement,20.43
+    supplement,21.02
+    supplement,20.64
+    supplement,20.41
+    supplement,19.89
+    supplement,19.93
+    supplement,20.12
+    supplement,20.58
+    supplement,20.85
+    supplement,20.68
+    supplement,20.36
+    supplement,20.33
+    supplement,20.5
+    supplement,21.17
+    supplement,20.81
+    supplement,21.02
+    supplement,20.04
+    supplement,20.13
+    supplement,19.53
+    supplement,20.72
+    supplement,21.03
+    supplement,21.28
+    supplement,20.29
+    supplement,21.03
+    supplement,19.44
+    supplement,20.42
+    supplement,21.15
+    supplement,20.25
+    supplement,19.8
+    supplement,20.03
+    supplement,19.86
+    supplement,19.52
+    supplement,19.81
+    supplement,20.36
+    supplement,19.95
+    supplement,19.69
+    supplement,19.23
+    supplement,20.99
+    supplement,20.35
+    supplement,19.83
+    supplement,19.53
+    supplement,21.35
+    supplement,18.98
+    supplement,20.79
+    supplement,20.21
+    supplement,21.02
+    supplement,19.01
+    supplement,20.95
+    supplement,20.47
+    supplement,20.45
+    supplement,20.32
+    supplement,20.05
+    supplement,19.67
+    supplement,20.08
+    supplement,20.62
+    supplement,19.87
+    supplement,20.6
+    supplement,19.88
+    supplement,20.39
+    supplement,18.49
+    supplement,20.12
+    supplement,21.03
+    supplement,18.37
+    supplement,19.8
+    supplement,19.79
+    supplement,19.9
+    supplement,20.3
+    supplement,20.15
+    supplement,19.75
+    supplement,19.63
+    supplement,20.17
+    supplement,18.72
+    supplement,19.09
+    supplement,20.76
+    supplement,20.16
+    supplement,20.54
+    supplement,20.8
+    supplement,19.88
+    supplement,20.1
+    supplement,20.25
+    supplement,19.74
+    supplement,21.17
+    supplement,21.69
+    supplement,19.84
+    supplement,19.38
+    supplement,19.75
+    supplement,20.28
+    supplement,20.19
+    supplement,19.96
+    supplement,19.7
+    supplement,20.92
+    supplement,19.79
+    supplement,18.96
+    supplement,20.54
+    supplement,19.25
+    supplement,20.88
+    supplement,20.08
+    supplement,20.47
+    supplement,21.25
+    supplement,20.2
+    supplement,20.51
+checks:
+  - kind: stdout
+    label: Reports the difference, the p-value, and rejects the claim
+    expected: |
+      difference = 0.21 cm
+      p = 0.0004
+      claim holds: False
+hints:
+  - Split the two groups the same way as the previous exercise.
+  - "The threshold is two conditions joined with `and`."
+  - "A comparison such as `difference >= 1` already gives you True or False — no `if` needed."
+solution_code: |
+  import pandas as pd
+  from scipy import stats
+
+  growth = pd.read_csv("growth.csv")
+
+  supplement = growth[growth["group"] == "supplement"]["height_cm"]
+  plain = growth[growth["group"] == "plain"]["height_cm"]
+
+  difference = supplement.mean() - plain.mean()
+  result = stats.ttest_ind(supplement, plain, equal_var=False)
+
+  print(f"difference = {difference:.2f} cm")
+  print(f"p = {result.pvalue:.4f}")
+  print("claim holds:", difference >= 1 and result.pvalue < 0.05)

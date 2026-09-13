@@ -109,7 +109,11 @@ def test_each_teaching_module_ends_more_independently_than_it_starts():
 
 
 def test_the_capstone_module_is_open_ended_throughout():
-    capstones = max(CURRICULUM.modules, key=lambda m: m.position)
+    # Named rather than found by highest position: positions are global across
+    # tracks, so "the last module" became Track B's the moment Track B existed,
+    # and this test would then have been asserting Track A's rule about the
+    # wrong module. Track B's own capstone arrives with its final modules.
+    capstones = next(m for m in CURRICULUM.modules if m.slug == "capstones")
 
     for lesson in capstones.lessons:
         for exercise in lesson.exercises:

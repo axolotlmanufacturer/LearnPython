@@ -32,6 +32,7 @@ interface ExerciseFile {
   checks: Check[];
   solution_code: string;
   hints?: string[];
+  packages?: string[];
 }
 
 interface AuthoredExercise extends ExerciseFile {
@@ -62,6 +63,22 @@ function collectExercises(): AuthoredExercise[] {
 
 const exercises = collectExercises();
 
+/**
+ * Exercises this runner can actually execute.
+ *
+ * An exercise that declares packages needs compiled wasm wheels, which the
+ * Pyodide npm package does not ship — they are fetched from the distribution
+ * CDN at runtime. Downloading tens of megabytes of scipy inside a unit-test run
+ * would be slow, flaky, and dependent on a third party being up, which is the
+ * same reason the end-to-end suite self-hosts the interpreter.
+ *
+ * Those exercises are verified instead against CPython with the real libraries
+ * installed, in apps/api/tests/test_authored_content_packages.py — the same
+ * harness.py, a third place it runs. See docs/spike-scientific-stack.md §4 for
+ * what that does and does not prove.
+ */
+const runnable = exercises.filter((exercise) => (exercise.packages?.length ?? 0) === 0);
+
 let runner: NodePyodideRunner;
 
 beforeAll(async () => {
@@ -78,7 +95,7 @@ describe("authored curriculum", () => {
     expect(exercises.length).toBeGreaterThan(0);
   });
 
-  describe.each(exercises.map((e) => [e.where, e] as const))("%s", (_where, exercise) => {
+  describe.each(runnable.map((e) => [e.where, e] as const))("%s", (_where, exercise) => {
     it("has a reference solution that passes its own checks", async () => {
       const result = await runner.run({
         code: exercise.solution_code,
@@ -165,6 +182,33 @@ describe("exercise authoring conventions", () => {
       // were written in the wrong order.
       if (hints.length >= 2) {
         expect(hints.length, `${exercise.where} has too many hints`).toBeLessThanOrEqual(4);
+      }
+    }
+  });
+
+  it("only declares packages the shipped interpreter can actually supply", () => {
+    // The Python schema's ALLOW_LIST catches typos and makes adding a package a
+    // deliberate act, but it cannot know what the interpreter has. This can:
+    // pyodide-lock.json is the registry `loadPackage` resolves against, read
+    // from the exact npm package the build pins to.
+    //
+    // What this guards against is a Pyodide upgrade quietly renaming or
+    // dropping a package. The failure would otherwise appear at a learner's
+    // keystroke, in the one part of the product with no server-side fallback.
+    const lock = JSON.parse(
+      readFileSync(
+        path.resolve(import.meta.dirname, "../../../node_modules/pyodide/pyodide-lock.json"),
+        "utf8",
+      ),
+    ) as { packages: Record<string, { depends: string[] }> };
+
+    for (const exercise of exercises) {
+      for (const name of exercise.packages ?? []) {
+        expect(
+          lock.packages[name],
+          `${exercise.where} declares "${name}", which is not in the Pyodide ` +
+            `distribution this build ships.`,
+        ).toBeDefined();
       }
     }
   });

@@ -43,10 +43,36 @@ async function boot(indexUrl, harnessUrl) {
   return pyodide;
 }
 
-/** @param {{id: number, payload: string}} request */
+/**
+ * Load the packages an exercise declared, if any are not already present.
+ *
+ * `loadPackage` resolves from the same indexURL as the interpreter — these are
+ * compiled wasm wheels shipped with the distribution, not PyPI packages, so
+ * micropip is not involved (docs/spike-scientific-stack.md §1). Calling it for
+ * an already-loaded package is a no-op, but the check below avoids announcing a
+ * download that is not going to happen.
+ *
+ * @param {any} pyodide
+ * @param {number} id
+ * @param {string[]} packages
+ */
+async function ensurePackages(pyodide, id, packages) {
+  if (!packages || packages.length === 0) return;
+
+  const missing = packages.filter((name) => !pyodide.loadedPackages[name]);
+  if (missing.length === 0) return;
+
+  self.postMessage({ type: "loading-packages", id, packages: missing });
+  await pyodide.loadPackage(missing);
+  // Tells the main thread to start its run clock. See PackagesLoadedMessage.
+  self.postMessage({ type: "packages-loaded", id });
+}
+
+/** @param {{id: number, payload: string, packages?: string[]}} request */
 async function handleRun(request) {
   try {
     const pyodide = await pyodidePromise;
+    await ensurePackages(pyodide, request.id, request.packages ?? []);
     const run = pyodide.globals.get("run_submission");
     if (typeof run !== "function") {
       throw new Error("The grading harness did not load correctly.");

@@ -1,0 +1,39 @@
+slug: debug-the-column-name
+lesson: a-table-in-python
+position: 3
+title: Find the fault in the column name
+bloom: analyze
+scaffold_level: debug
+packages: [pandas]
+prompt_markdown: |
+  This program stops with a `KeyError`. Run it first and read what Python says —
+  a `KeyError` names the thing that was asked for and not found.
+
+  Compare that name against the real column names. Fix it so the program prints
+  the highest temperature.
+starter_code: |
+  import pandas as pd
+
+  readings = pd.read_csv("readings.csv")
+
+  print(readings["temperature"].max())
+files:
+  readings.csv: |
+    sample_id,site,temperature_c,count
+    S001,north,12.4,31
+    S002,north,13.1,28
+    S003,south,18.9,44
+    S004,south,19.2,51
+checks:
+  - kind: stdout
+    label: Prints the highest temperature, 19.2
+    expected: "19.2"
+hints:
+  - Print `list(readings.columns)` to see the names as they actually are.
+  - The column exists, but its name carries the unit on the end.
+solution_code: |
+  import pandas as pd
+
+  readings = pd.read_csv("readings.csv")
+
+  print(readings["temperature_c"].max())

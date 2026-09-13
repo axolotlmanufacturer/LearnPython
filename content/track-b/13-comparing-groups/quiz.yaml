@@ -1,0 +1,90 @@
+items:
+  - slug: what-p-means
+    position: 1
+    kind: multiple_choice
+    prompt_markdown: |
+      A comparison gives p = 0.02. What does that number mean?
+    options:
+      - If there were no real difference, a difference at least this large would turn up 2% of the time
+      - There is a 2% chance there is no real difference
+      - There is a 98% chance the result is real
+      - The effect is small
+    answer: If there were no real difference, a difference at least this large would turn up 2% of the time
+    explanation_markdown: >-
+      The order of the conditional is everything. p is computed *assuming* there
+      is no real difference, so it cannot also tell you the probability of that
+      assumption being true. The second and third options are the same mistake
+      stated two ways, and they are the most common misreading in published
+      research.
+
+  - slug: significant-but-tiny
+    position: 2
+    kind: multiple_choice
+    prompt_markdown: |
+      A study of 50,000 plants finds a 0.02 cm height difference, p < 0.001.
+      What should you conclude?
+    options:
+      - The difference is probably real and almost certainly too small to matter
+      - The result is highly significant, so the effect is large
+      - The study is flawed
+      - Nothing — the p-value is too small to trust
+    answer: The difference is probably real and almost certainly too small to matter
+    explanation_markdown: >-
+      With enough samples, almost any difference becomes detectable. The p-value
+      answers "did we see something"; the effect size answers "was it worth
+      seeing". Only the second is about the world, which is why both must always
+      be reported together.
+
+  - slug: threshold-is-a-convention
+    position: 3
+    kind: multiple_choice
+    prompt_markdown: |
+      One comparison gives p = 0.049 and another p = 0.051. How do they differ as
+      evidence?
+    options:
+      - They are essentially identical
+      - The first is significant and the second is not
+      - The first is twice as strong
+      - The second should be discarded
+    answer: They are essentially identical
+    explanation_markdown: >-
+      The 0.05 threshold is a convention with no mathematical standing. Treating
+      it as a boundary between true and false — and reporting one result while
+      discarding the other — is the single most damaging habit in applied
+      statistics.
+
+  - slug: recall-groupby-count
+    position: 4
+    kind: multiple_choice
+    reviews_module_slug: describing-data
+    prompt_markdown: |
+      From Module 12 — before running any test on two groups, what should you
+      always have looked at?
+    options:
+      - The count and spread of each group, not just the means
+      - Only the means
+      - The column names
+      - The file size
+    answer: The count and spread of each group, not just the means
+    explanation_markdown: >-
+      A test on six heavily skewed measurements returns a confident number that
+      means nothing. The t-test assumes roughly symmetric data and independent
+      observations; you can only check the first by looking, and the counts tell
+      you how much weight the answer can carry.
+
+  - slug: why-welch
+    position: 5
+    kind: multiple_choice
+    prompt_markdown: |
+      Why pass `equal_var=False` to `ttest_ind`?
+    options:
+      - It drops an assumption that is often false, and costs nothing when it is true
+      - It makes the p-value smaller
+      - It is required when the groups differ in size
+      - It speeds up the calculation
+    answer: It drops an assumption that is often false, and costs nothing when it is true
+    explanation_markdown: >-
+      The default assumes both groups have the same underlying spread. Welch's
+      test does not. When the spreads really are equal the two agree closely, and
+      when they are not Welch's stays correct — so there is little reason to take
+      the risk for a benefit you cannot detect.

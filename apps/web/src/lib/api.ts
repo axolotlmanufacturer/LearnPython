@@ -30,6 +30,8 @@ export interface ApiExercise {
   stdin: string[];
   /** Seeded into the run's working directory before the learner's code runs. */
   files: Record<string, string>;
+  /** Pyodide packages loaded before the run, e.g. `["pandas"]`. Track B only. */
+  packages: string[];
   checks: Check[];
 }
 

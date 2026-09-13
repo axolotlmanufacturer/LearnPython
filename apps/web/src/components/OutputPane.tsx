@@ -27,6 +27,10 @@ export function OutputPane({
   truncated: boolean;
 }) {
   const loading = runnerState === "loading" || runnerState === "restarting";
+  // A separate message from the interpreter's own cold start: this one is
+  // several times larger and happens later, so a learner who has already sat
+  // through "starting Python" would otherwise think it had gone wrong.
+  const loadingPackages = runnerState === "loading-packages";
 
   return (
     <section aria-labelledby="output-heading" className="flex h-full flex-col">
@@ -53,11 +57,18 @@ export function OutputPane({
           </p>
         )}
 
-        {!loading && !hasRun && (
+        {loadingPackages && (
+          <p className="text-ink-soft">
+            Fetching the data-analysis libraries… this is a large download the first time, and it is
+            then reused for the rest of the track.
+          </p>
+        )}
+
+        {!loading && !loadingPackages && !hasRun && (
           <p className="font-sans text-ink-soft">Press Run to see what your program does.</p>
         )}
 
-        {!loading && hasRun && segments.length === 0 && (
+        {!loading && !loadingPackages && hasRun && segments.length === 0 && (
           <p className="font-sans text-ink-soft">
             The program ran without printing anything. Add a <code>print(...)</code> to see a value.
           </p>

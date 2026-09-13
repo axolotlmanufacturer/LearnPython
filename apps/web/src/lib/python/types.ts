@@ -86,8 +86,12 @@ export interface ExecutionRequest {
    * exercise can hand the learner something to read. Each run gets a fresh
    * directory, so nothing survives between runs. */
   files?: Record<string, string>;
-  /** Wall-clock budget. Defaults to DEFAULT_TIMEOUT_MS. */
+  /** Wall-clock budget for the learner's code. Defaults to DEFAULT_TIMEOUT_MS.
+   * Time spent downloading `packages` is not counted against it. */
   timeoutMs?: number;
+  /** Pyodide packages to load before running, e.g. `["pandas"]`. Loaded from the
+   * interpreter's own origin; see docs/spike-scientific-stack.md. */
+  packages?: string[];
 }
 
 export type ExecutionStatus =
@@ -153,7 +157,8 @@ export interface ExecutionResult {
   durationMs: number;
 }
 
-export type RunnerState = "idle" | "loading" | "ready" | "running" | "restarting" | "failed";
+export type RunnerState =
+  "idle" | "loading" | "loading-packages" | "ready" | "running" | "restarting" | "failed";
 
 export interface PythonRunner {
   /** Load the runtime. Safe to call repeatedly; callers may also skip it and
