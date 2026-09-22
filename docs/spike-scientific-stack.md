@@ -126,13 +126,17 @@ places by design (browser and Node); running it in a third — CPython with real
 which is the _content_: does the reference solution actually satisfy the checks
 the author wrote?
 
-The version skew is small enough to be worth stating:
+CPython is pinned to Pyodide's versions by the API's `content` extra
+(`apps/api/pyproject.toml`), which CI installs; in CI, pytest refuses to start
+without it, so these tests cannot skip their way to a green build. One version
+cannot match:
 
-| Package | Pyodide | CPython used for verification |
-| ------- | ------- | ----------------------------- |
-| numpy   | 2.4.6   | 2.4.6                         |
-| pandas  | 3.0.2   | 3.0.5                         |
-| scipy   | 1.18.0  | 1.17.1                        |
+| Package    | Pyodide | CPython used for verification                      |
+| ---------- | ------- | -------------------------------------------------- |
+| numpy      | 2.4.6   | 2.4.6                                              |
+| pandas     | 3.0.2   | 3.0.2                                              |
+| scipy      | 1.18.0  | 1.17.x — 1.18 requires Python ≥ 3.12; CI runs 3.11 |
+| matplotlib | 3.10.8  | 3.10.8                                             |
 
 **What this does not prove:** that the wheels load in a browser, that
 `loadPackage` resolves them, that they fit in the worker's memory, or that a
@@ -204,7 +208,7 @@ code. Nothing Track B draws — a histogram, a boxplot, a volcano plot — needs
 ### Still unverified
 
 Everything above runs under CPython in `apps/api/tests/test_harness_figures.py`,
-with matplotlib 3.11.2 against Pyodide's 3.10.8. Whether Pyodide's matplotlib
+with the same matplotlib version Pyodide ships (3.10.8). Whether Pyodide's matplotlib
 build honours `MPLBACKEND` in a worker — rather than installing a browser backend
 of its own — is the most likely point of failure in the whole of Track B, and it
 joins §5's list: **it needs one real browser run against a reachable CDN.** If it
