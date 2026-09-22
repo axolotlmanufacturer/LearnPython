@@ -13,18 +13,21 @@
  * italicised, and echoed input is marked with a chevron.
  */
 
-import type { ConsoleSegment, RunnerState } from "@/lib/python/types";
+import type { ConsoleSegment, Figure, RunnerState } from "@/lib/python/types";
 
 export function OutputPane({
   segments,
   runnerState,
   hasRun,
   truncated,
+  figures = [],
 }: {
   segments: ConsoleSegment[];
   runnerState: RunnerState;
   hasRun: boolean;
   truncated: boolean;
+  /** Plots the program drew. Rendered after the text, in drawing order. */
+  figures?: Figure[];
 }) {
   const loading = runnerState === "loading" || runnerState === "restarting";
   // A separate message from the interpreter's own cold start: this one is
@@ -68,14 +71,34 @@ export function OutputPane({
           <p className="font-sans text-ink-soft">Press Run to see what your program does.</p>
         )}
 
-        {!loading && !loadingPackages && hasRun && segments.length === 0 && (
-          <p className="font-sans text-ink-soft">
-            The program ran without printing anything. Add a <code>print(...)</code> to see a value.
-          </p>
-        )}
+        {!loading &&
+          !loadingPackages &&
+          hasRun &&
+          segments.length === 0 &&
+          figures.length === 0 && (
+            <p className="font-sans text-ink-soft">
+              The program ran without printing anything. Add a <code>print(...)</code> to see a
+              value.
+            </p>
+          )}
 
         {segments.map((segment, index) => (
           <Segment key={index} segment={segment} />
+        ))}
+
+        {figures.map((figure, index) => (
+          // A data URL, never markup: the PNG bytes came from the harness's own
+          // savefig, and `img-src data:` is already allowed by the CSP. The alt
+          // text is generated from what was drawn — see _describe_axes in
+          // harness.py — so a screen-reader user hears the title, the axes and
+          // how many points, rather than "image".
+          // eslint-disable-next-line @next/next/no-img-element -- a runtime data URL, not a static asset
+          <img
+            key={index}
+            src={`data:image/png;base64,${figure.png}`}
+            alt={figure.alt}
+            className="mt-3 block max-w-full rounded border border-rule bg-white"
+          />
         ))}
 
         {truncated && (

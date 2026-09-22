@@ -1,0 +1,54 @@
+slug: write-the-filter
+lesson: along-an-axis
+position: 3
+title: Drop the features too faint to trust
+bloom: apply
+scaffold_level: write_from_spec
+packages: [pandas]
+prompt_markdown: |
+  Keep only the features whose mean is **at least 6.0**, in a table called
+  `kept`, and print exactly two lines:
+
+  ```
+  kept 160 of 200 features
+  gaps remaining: 0
+  ```
+
+  Both numbers must be computed, not typed. The second one is not decoration: it
+  checks the claim from the lesson that the gaps were all in the faint features,
+  instead of assuming it.
+starter_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+
+  # Your code here.
+files:
+  expression.csv:
+    from: datasets/expression.csv
+checks:
+  - kind: stdout
+    label: Reports how many features were kept, and that no gaps remain
+    expected: |
+      kept 160 of 200 features
+      gaps remaining: 0
+  - kind: expr
+    label: kept holds exactly the features with a mean of at least 6.0
+    expression: "sorted(kept.index) == sorted(expression.index[expression.mean(axis=1) >= 6.0])"
+    expected: true
+  - kind: source
+    label: Works the numbers out rather than typing them in
+    forbid_text: ["160", "200"]
+hints:
+  - "`expression.mean(axis=1) >= 6.0` is a True/False value for each feature."
+  - Put it inside `expression[...]` to keep the rows where it is True.
+  - "`len(kept)`, `len(expression)` and `kept.isna().sum().sum()` give the three numbers."
+solution_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+
+  kept = expression[expression.mean(axis=1) >= 6.0]
+
+  print(f"kept {len(kept)} of {len(expression)} features")
+  print("gaps remaining:", kept.isna().sum().sum())

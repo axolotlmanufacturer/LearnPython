@@ -1,0 +1,56 @@
+slug: fill-in-the-parser
+lesson: parsing-by-hand
+position: 2
+title: Build the table by hand
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  Complete the parser so it builds a dictionary from each feature's name to a
+  list of its values, turning every empty cell into `None` and every other cell
+  into a `float`.
+
+  Fill in the two blanks. The checks look inside your `table` directly, so the
+  printing at the end is only there for you.
+starter_code: |
+  table = {}
+
+  with open("expression.csv") as f:
+      samples = f.readline().strip().split(",")[1:]
+      for line in f:
+          name, *cells = line.strip().split(",")
+          table[name] = [MISSING if cell == "" else CONVERT(cell) for cell in cells]
+
+  print(samples)
+  print(table["gene_002"])
+files:
+  expression.csv:
+    from: datasets/expression_corner.csv
+checks:
+  - kind: expr
+    label: Reads all five features
+    expression: sorted(table)
+    expected: [gene_001, gene_002, gene_003, gene_004, gene_005]
+  - kind: expr
+    label: Turns text into numbers
+    expression: table["gene_001"]
+    expected: [6.92, 7.61, 6.3, 7.12]
+    tolerance: 1.0e-9
+  - kind: expr
+    label: Turns an empty cell into None rather than zero
+    expression: table["gene_002"]
+    expected: [4.65, 4.69, null, null]
+hints:
+  - What should a gap become? The lesson argues for one specific value that is not zero.
+  - '`float("6.92")` turns the text into the number.'
+  - '`None if cell == "" else float(cell)`'
+solution_code: |
+  table = {}
+
+  with open("expression.csv") as f:
+      samples = f.readline().strip().split(",")[1:]
+      for line in f:
+          name, *cells = line.strip().split(",")
+          table[name] = [None if cell == "" else float(cell) for cell in cells]
+
+  print(samples)
+  print(table["gene_002"])

@@ -1,0 +1,76 @@
+slug: read-the-volcano
+lesson: the-volcano-plot
+position: 3
+title: Read the volcano plot
+bloom: evaluate
+scaffold_level: write_from_spec
+packages: [pandas, numpy, matplotlib]
+prompt_markdown: |
+  Draw the highlighted volcano plot again (reuse your code from the last
+  exercise), then answer three questions by setting variables. You may read the
+  answers off the plot or compute them from `results` — the aim is to be able to
+  do either, and to know they agree.
+
+  - `n_up` — how many highlighted features went **up** in treated;
+  - `n_down` — how many went **down**;
+  - `significant_but_small` — a sorted list of the names of the features above
+    the horizontal line but **between** the vertical lines.
+
+  Then look at `significant_but_small` and ask: would you report these to a
+  biologist? Module 14 already told you something about them.
+starter_code: |
+  import numpy as np
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  results = pd.read_csv("results.csv", index_col="feature")
+
+  # Your code here.
+files:
+  results.csv:
+    from: datasets/results.csv
+checks:
+  - kind: expr
+    label: Counts the features that went up
+    expression: n_up
+    expected: 10
+  - kind: expr
+    label: Counts the features that went down
+    expression: n_down
+    expected: 10
+  - kind: expr
+    label: Finds the features that are significant but changed by less than a factor of two
+    expression: significant_but_small
+    expected: [gene_004, gene_105]
+  - kind: expr
+    label: Draws the volcano plot as well
+    expression: __plots__[0]["points"] if __plots__ else 0
+    expected: 160
+hints:
+  - Up means a positive effect, down a negative one — among the highlighted features only.
+  - '"Above the horizontal line" is `p_adj < 0.05`; "between the vertical lines" is `effect.abs() < 1`.'
+  - "`sorted(results.index[mask])` turns a True/False mask into a sorted list of names."
+solution_code: |
+  import numpy as np
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  results = pd.read_csv("results.csv", index_col="feature")
+
+  height = -np.log10(results["p_adj"])
+  significant = (results["p_adj"] < 0.05) & (results["effect"].abs() >= 1)
+
+  plt.scatter(results["effect"], height, c=["crimson" if s else "grey" for s in significant])
+  plt.axhline(-np.log10(0.05), linestyle="--", color="black")
+  plt.axvline(-1, linestyle="--", color="black")
+  plt.axvline(1, linestyle="--", color="black")
+  plt.xlabel("effect: treated minus control (log2)")
+  plt.ylabel("-log10 adjusted p-value")
+  plt.title("Volcano plot")
+  plt.show()
+
+  n_up = int((significant & (results["effect"] > 0)).sum())
+  n_down = int((significant & (results["effect"] < 0)).sum())
+  significant_but_small = sorted(
+      results.index[(results["p_adj"] < 0.05) & (results["effect"].abs() < 1)]
+  )

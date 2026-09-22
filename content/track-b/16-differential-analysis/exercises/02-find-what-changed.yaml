@@ -1,0 +1,129 @@
+slug: find-what-changed
+lesson: the-pipeline
+position: 2
+title: Compare every feature, correct, and find what changed
+bloom: create
+scaffold_level: open_ended
+packages: [pandas, scipy]
+prompt_markdown: |
+  Extend your pipeline from stage one. Build a table called `results`, one row
+  per kept feature, with these columns:
+
+  - `effect` — treated mean minus control mean;
+  - `t` — Welch's t statistic, computed **by your own function** from the
+    formula in the lesson;
+  - `t_scipy` — the same statistic from `scipy.stats.ttest_ind(..., equal_var=False)`,
+    so the two can be compared;
+  - `p` — the p-value from scipy;
+  - `p_adj` — Benjamini–Hochberg adjusted, **by your own function**.
+
+  Then `significant_features`: a sorted list of the names of features with
+  `p_adj` below 0.05 **and** an effect of at least 1 in either direction.
+
+  This is graded against the features that were really shifted when the data
+  was made: find at least 18 of the 20, and report no more than 2 that were not.
+starter_code: |
+  import pandas as pd
+  from scipy import stats
+
+  # Start from your code for stage one, then carry on.
+files:
+  expression.csv:
+    from: datasets/expression.csv
+  samples.csv:
+    from: datasets/samples.csv
+checks:
+  - kind: expr
+    label: Compares all 160 kept features
+    expression: len(results)
+    expected: 160
+  - kind: expr
+    label: Your t statistic agrees with scipy's for every feature
+    expression: float((results["t"] - results["t_scipy"]).abs().max())
+    expected: 0.0
+    tolerance: 1.0e-9
+  - kind: expr
+    # Judged on adjusted p alone, so a missing correction cannot hide behind the
+    # effect-size threshold. Shows the false count when it is too high.
+    label: Adjusts for multiple testing — no more than 2 false findings on adjusted p alone
+    expression: >-
+      max(len(set(results.index[results["p_adj"] < 0.05]) - {"gene_009", "gene_018", "gene_023", "gene_027", "gene_029", "gene_037", "gene_044", "gene_052", "gene_079", "gene_080", "gene_085", "gene_091", "gene_092", "gene_121", "gene_129", "gene_140", "gene_144", "gene_157", "gene_158", "gene_186"}), 2)
+    expected: 2
+  - kind: expr
+    # Shows how many were found when it is fewer than 18.
+    label: Finds at least 18 of the 20 truly shifted features
+    expression: >-
+      min(len(set(significant_features) & {"gene_009", "gene_018", "gene_023", "gene_027", "gene_029", "gene_037", "gene_044", "gene_052", "gene_079", "gene_080", "gene_085", "gene_091", "gene_092", "gene_121", "gene_129", "gene_140", "gene_144", "gene_157", "gene_158", "gene_186"}), 18)
+    expected: 18
+  - kind: expr
+    label: Reports no more than 2 features that were not truly shifted
+    expression: >-
+      max(len(set(significant_features) - {"gene_009", "gene_018", "gene_023", "gene_027", "gene_029", "gene_037", "gene_044", "gene_052", "gene_079", "gene_080", "gene_085", "gene_091", "gene_092", "gene_121", "gene_129", "gene_140", "gene_144", "gene_157", "gene_158", "gene_186"}), 2)
+    expected: 2
+rubric:
+  - Is your t statistic computed from its formula, rather than copied from scipy's result?
+  - Could you point to the single line that applies each threshold?
+  - If you swapped Benjamini–Hochberg for Bonferroni, how many functions would you have to change?
+  - Does every p-value in your results sit next to its effect size?
+solution_code: |
+  import pandas as pd
+  from scipy import stats
+
+
+  def load():
+      return pd.read_csv("expression.csv", index_col="feature"), pd.read_csv("samples.csv")
+
+
+  def prepare(expression, threshold=6.0):
+      kept = expression[expression.mean(axis=1) >= threshold]
+      return kept - kept.median()
+
+
+  def split_by_condition(samples):
+      control = samples.loc[samples["condition"] == "control", "sample_id"]
+      treated = samples.loc[samples["condition"] == "treated", "sample_id"]
+      return control, treated
+
+
+  def welch_t(a, b):
+      """Welch's t for every row: a minus b, in units of the difference's noise."""
+      return (a.mean(axis=1) - b.mean(axis=1)) / (
+          a.var(axis=1) / a.shape[1] + b.var(axis=1) / b.shape[1]
+      ) ** 0.5
+
+
+  def benjamini_hochberg(pvalues):
+      n = len(pvalues)
+      order = sorted(range(n), key=lambda i: pvalues[i])
+      adjusted = [0.0] * n
+      running_min = 1.0
+      for rank in range(n, 0, -1):
+          i = order[rank - 1]
+          running_min = min(running_min, pvalues[i] * n / rank)
+          adjusted[i] = running_min
+      return adjusted
+
+
+  expression, samples = load()
+  normalised = prepare(expression)
+  control, treated = split_by_condition(samples)
+
+  a, b = normalised[treated], normalised[control]
+  scipy_result = stats.ttest_ind(a, b, axis=1, equal_var=False)
+
+  results = pd.DataFrame(
+      {
+          "effect": a.mean(axis=1) - b.mean(axis=1),
+          "t": welch_t(a, b),
+          "t_scipy": scipy_result.statistic,
+          "p": scipy_result.pvalue,
+      },
+      index=normalised.index,
+  )
+  results["p_adj"] = benjamini_hochberg(list(results["p"]))
+
+  findings = (results["p_adj"] < 0.05) & (results["effect"].abs() >= 1)
+  significant_features = sorted(results.index[findings])
+
+  print(f"{len(significant_features)} features changed:")
+  print(results.loc[significant_features, ["effect", "p_adj"]].round(4))

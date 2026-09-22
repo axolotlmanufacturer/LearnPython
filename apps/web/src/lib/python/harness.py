@@ -42,6 +42,7 @@ import shutil
 import tempfile
 import time
 import traceback
+import warnings
 from typing import Any
 
 LEARNER_FILENAME = "<your code>"
@@ -281,7 +282,17 @@ def _normalise(value: Any) -> Any:
     JSON has no tuples or sets, so an exercise author writing `expected: [1, 2]`
     should match a learner function that returns `(1, 2)`. Dict keys arriving
     from JSON are always strings.
+
+    numpy and pandas values are converted to plain Python first. Two reasons,
+    both of which would otherwise surface as a correct Track B answer marked
+    wrong: `numpy.bool_` is not a subclass of `bool`, so the bool/int guard in
+    `_values_equal` would reject a numpy True against `expected: true`; and `==`
+    on a Series compares element-wise, so its truth value raises. Detected by
+    module name rather than by importing numpy, because Track A runs without it.
     """
+    tolist = getattr(value, "tolist", None)
+    if callable(tolist) and type(value).__module__.split(".")[0] in {"numpy", "pandas"}:
+        return _normalise(tolist())
     if isinstance(value, tuple):
         return [_normalise(v) for v in value]
     if isinstance(value, list):
@@ -481,12 +492,19 @@ def _call_repr(name: str, args: list[Any], kwargs: dict[str, Any]) -> str:
     return f"{name}({', '.join(parts)})"
 
 
-def _check_expr(check: dict[str, Any], namespace: dict[str, Any]) -> dict[str, Any]:
+def _check_expr(
+    check: dict[str, Any], namespace: dict[str, Any], plots: list[dict[str, Any]]
+) -> dict[str, Any]:
     expression = check["expression"]
     tolerance = check.get("tolerance")
 
+    # `__plots__` is visible to the check and not to the learner: a summary of
+    # what their figures contain (see _summarise_plots), so an exercise can ask
+    # "is the x axis labelled" without depending on what the learner happened to
+    # call pyplot. Evaluated in a copy so it never lands in their namespace.
+    scope = {**namespace, "__plots__": plots}
     try:
-        value = eval(expression, namespace)  # noqa: S307 - authored content, not learner input
+        value = eval(expression, scope)  # noqa: S307 - authored content, not learner input
     except NameError as exc:
         missing = str(exc).split("'")[1] if "'" in str(exc) else "a variable"
         return {
@@ -612,6 +630,7 @@ def _run_checks(
     stdout: str,
     source: str,
     workspace: _Workspace,
+    plots: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     for index, check in enumerate(checks):
@@ -623,7 +642,7 @@ def _run_checks(
         elif kind == "call":
             outcome = _check_call(check, namespace)
         elif kind == "expr":
-            outcome = _check_expr(check, namespace)
+            outcome = _check_expr(check, namespace, plots)
         elif kind == "source":
             outcome = _check_source(check, source)
         elif kind == "file":
@@ -639,6 +658,162 @@ def _run_checks(
         status = "passed" if outcome["passed"] else "failed"
         results.append({"label": label, "status": status, **outcome})
     return results
+
+
+# --------------------------------------------------------------------------
+# Figures (Track B, Module 15 onward)
+# --------------------------------------------------------------------------
+#
+# matplotlib is never imported here. Everything below looks for
+# `matplotlib.pyplot` in sys.modules — present only if the learner imported it —
+# so a Track A run pays nothing and needs no package that is not installed.
+
+#: A figure is a picture of data, not a data channel. Four is more than any
+#: exercise draws and few enough that a loop calling plt.figure() cannot flood
+#: the output pane with megabytes of PNG.
+MAX_FIGURES = 4
+
+#: 80 dpi gives roughly a 500 px wide image — legible in the output column and
+#: a few tens of kilobytes each.
+FIGURE_DPI = 80
+
+
+def _pyplot() -> Any:
+    import sys
+
+    return sys.modules.get("matplotlib.pyplot")
+
+
+def _summarise_plots() -> list[dict[str, Any]]:
+    """What each set of axes contains, for `expr` checks to inspect as `__plots__`.
+
+    One entry per axes across every open figure, in drawing order. Plain Python
+    values only, so a check reads like `__plots__[0]["xlabel"] != ""` rather
+    than reaching into matplotlib's object model — which would tie every
+    exercise to one library version and one import alias.
+    """
+    pyplot = _pyplot()
+    if pyplot is None or not pyplot.get_fignums():
+        return []
+    # figure(n) also makes n current; put things back afterwards so summarising
+    # has no effect a check could observe.
+    current = pyplot.gcf().number
+    summaries: list[dict[str, Any]] = []
+    for number in pyplot.get_fignums():
+        for axes in pyplot.figure(number).axes:
+            summaries.append(
+                {
+                    "title": axes.get_title(),
+                    "xlabel": axes.get_xlabel(),
+                    "ylabel": axes.get_ylabel(),
+                    # Scatter plots are collections of offsets; histograms and
+                    # bar charts are rectangles; plain plot() calls are lines.
+                    "points": sum(len(c.get_offsets()) for c in axes.collections),
+                    "bars": len(axes.patches),
+                    "lines": len(axes.get_lines()),
+                    "xticklabels": [t.get_text() for t in axes.get_xticklabels() if t.get_text()],
+                    # Distinct marker colours in scatter plots, so an exercise can
+                    # ask whether significant points were highlighted.
+                    "point_colours": len(
+                        {
+                            tuple(round(float(x), 3) for x in colour)
+                            for c in axes.collections
+                            for colour in c.get_facecolors()
+                        }
+                    ),
+                }
+            )
+    pyplot.figure(current)
+    return summaries
+
+
+def _describe_axes(summary: dict[str, Any]) -> str:
+    """Alt text for one set of axes, built from what was actually drawn.
+
+    A plot without a title or axis labels produces alt text that says so — which
+    is accurate, and happens to be the same nudge a reviewer would give.
+    """
+    parts = [f"Plot titled “{summary['title']}”." if summary["title"] else "Untitled plot."]
+    parts.append(
+        f"Horizontal axis: {summary['xlabel']}." if summary["xlabel"] else "Horizontal axis unlabelled."
+    )
+    parts.append(
+        f"Vertical axis: {summary['ylabel']}." if summary["ylabel"] else "Vertical axis unlabelled."
+    )
+    drawn = []
+    if summary["points"]:
+        drawn.append(f"{summary['points']} points")
+    if summary["bars"]:
+        drawn.append(f"{summary['bars']} bars or boxes")
+    if summary["lines"]:
+        drawn.append(f"{summary['lines']} lines")
+    if drawn:
+        parts.append("Contains " + ", ".join(drawn) + ".")
+    return " ".join(parts)
+
+
+def _capture_figures(summaries: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """Render open figures to PNG for the output pane, then close them all.
+
+    Closing is not optional: pyplot keeps figures alive in module state, and the
+    interpreter is reused across runs. Without it, a figure from the previous
+    exercise would reappear under the next one.
+    """
+    import base64
+
+    pyplot = _pyplot()
+    if pyplot is None:
+        return []
+
+    captured: list[dict[str, str]] = []
+    axes_index = 0
+    try:
+        for number in pyplot.get_fignums()[:MAX_FIGURES]:
+            figure = pyplot.figure(number)
+            buffer = io.BytesIO()
+            figure.savefig(buffer, format="png", dpi=FIGURE_DPI, bbox_inches="tight")
+            count = len(figure.axes)
+            alt = " ".join(
+                _describe_axes(s) for s in summaries[axes_index : axes_index + count]
+            ) or "An empty figure."
+            axes_index += count
+            captured.append({"png": base64.b64encode(buffer.getvalue()).decode("ascii"), "alt": alt})
+    finally:
+        pyplot.close("all")
+    return captured
+
+
+def _safely(action: Any, fallback: Any) -> Any:
+    """Run a figure step, and fall back rather than fail the whole run.
+
+    Summarising and rendering figures touches whatever the learner built, which
+    can be arbitrarily strange. A plot we cannot draw is a missing picture; it
+    must never turn a learner's correct answer into an engine crash.
+    """
+    try:
+        return action()
+    except Exception:  # noqa: BLE001 - see above
+        pyplot = _pyplot()
+        if pyplot is not None:
+            pyplot.close("all")
+        return fallback
+
+
+def _prepare_plotting() -> None:
+    """Make matplotlib safe to use inside a Web Worker, before the learner imports it.
+
+    A worker has no DOM, so any browser-drawing backend fails the moment a plot
+    is shown. Agg renders off-screen, which is all we need: figures are captured
+    as PNG after the run. The environment variable is read when matplotlib is
+    first imported, so it has to be set before the learner's `import`, and it
+    takes precedence over any backend a matplotlibrc might name.
+    """
+    os.environ["MPLBACKEND"] = "Agg"
+    # A figure left open by a run that crashed before capture must not appear
+    # under this one.
+    pyplot = _pyplot()
+    if pyplot is not None:
+        pyplot.close("all")
 
 
 # --------------------------------------------------------------------------
@@ -664,6 +839,7 @@ def run_submission(payload_json: str) -> str:
         "__builtins__": builtins,
     }
     namespace["input"] = _make_input(stdin, recorder)
+    _prepare_plotting()
 
     started = time.perf_counter()
     error: dict[str, Any] | None = None
@@ -687,7 +863,13 @@ def run_submission(payload_json: str) -> str:
                 status = "error"
             else:
                 try:
-                    exec(compiled, namespace)  # noqa: S102 - this is the product
+                    with warnings.catch_warnings():
+                        # plt.show() under Agg warns that the canvas is
+                        # "non-interactive" — true, irrelevant, and printed in
+                        # red in a beginner's output pane as if they had done
+                        # something wrong. The figure is shown anyway, below.
+                        warnings.filterwarnings("ignore", message=".*non-interactive.*")
+                        exec(compiled, namespace)  # noqa: S102 - this is the product
                 except OutputLimitExceeded:
                     status = "error"
                     error = {
@@ -707,6 +889,7 @@ def run_submission(payload_json: str) -> str:
             sys.stdout, sys.stderr = real_stdout, real_stderr
 
         stdout = recorder.stdout
+        plots = _safely(_summarise_plots, [])
 
         if checks:
             if status == "error":
@@ -722,9 +905,13 @@ def run_submission(payload_json: str) -> str:
                     for i, check in enumerate(checks)
                 ]
             else:
-                check_results = _run_checks(checks, namespace, stdout, source, workspace)
+                check_results = _run_checks(checks, namespace, stdout, source, workspace, plots)
         else:
             check_results = []
+
+        # After the checks, which may inspect the live figures. Captured even when
+        # the code raised: a half-drawn plot is often the clue to what went wrong.
+        figures = _safely(lambda: _capture_figures(plots), [])
 
     passed = status == "ok" and all(c["passed"] for c in check_results)
     # Checks can raise too, and their tracebacks reference the learner's code,
@@ -742,5 +929,6 @@ def run_submission(payload_json: str) -> str:
             "passed": passed,
             "truncated": recorder.truncated,
             "durationMs": round((time.perf_counter() - started) * 1000, 3),
+            "figures": figures,
         }
     )

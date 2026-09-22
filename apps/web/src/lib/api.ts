@@ -46,6 +46,10 @@ export interface ApiLesson {
   content_markdown: string;
   worked_example_code: string | null;
   worked_example_note: string | null;
+  /** Packages the worked example needs loaded before it can run. */
+  worked_example_packages: string[];
+  /** Answers fed to input() when the worked example runs. */
+  worked_example_stdin: string[];
   exercises: ApiExercise[];
 }
 

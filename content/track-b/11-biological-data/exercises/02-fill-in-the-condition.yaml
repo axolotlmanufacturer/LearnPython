@@ -1,0 +1,54 @@
+slug: fill-in-the-condition
+lesson: features-and-samples
+position: 2
+title: Look a sample's condition up rather than guessing it
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  The sample names do not say which condition a sample was in. The sample table
+  does, so this program reads it into a dictionary: sample name in, condition out.
+
+  Fill in the two blanks so the dictionary is built correctly and the program
+  prints the condition of `S01` and of `S02`.
+
+  (If you assumed the first six samples were the controls, you would get `S01`
+  wrong. That is the point.)
+starter_code: |
+  conditions = {}
+
+  with open("samples.csv") as f:
+      f.readline()  # skip the header line
+      for line in f:
+          sample_id, condition, replicate = line.strip().split(",")
+          conditions[KEY] = VALUE
+
+  print("S01", conditions["S01"])
+  print("S02", conditions["S02"])
+files:
+  samples.csv:
+    from: datasets/samples.csv
+checks:
+  - kind: stdout
+    label: S01 is treated and S02 is control
+    expected: |
+      S01 treated
+      S02 control
+  - kind: expr
+    label: Every one of the twelve samples is in the dictionary
+    expression: len(conditions)
+    expected: 12
+hints:
+  - A dictionary stores `dictionary[key] = value`. What do you look it up by?
+  - The key is the sample's name; the value is what you want to find out about it.
+  - "`conditions[sample_id] = condition`"
+solution_code: |
+  conditions = {}
+
+  with open("samples.csv") as f:
+      f.readline()  # skip the header line
+      for line in f:
+          sample_id, condition, replicate = line.strip().split(",")
+          conditions[sample_id] = condition
+
+  print("S01", conditions["S01"])
+  print("S02", conditions["S02"])

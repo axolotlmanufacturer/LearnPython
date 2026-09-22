@@ -139,6 +139,13 @@ authored content is unchanged are left alone, and existing rows are updated in
 place rather than replaced, so learner submissions keep pointing at the same
 exercises.
 
+**Content deleted from the files is deleted from the database**, and so is
+learner progress and submission history attached to it (the foreign keys
+cascade). That is deliberate: a lesson nobody can see any more would otherwise
+leave its module impossible to complete. Every removal is printed — look for
+`removed lesson '…'` in the deploy log — so a file deleted by accident shows up
+there as well as in review. Renaming a slug counts as deleting the old one.
+
 ### Before the first deploy
 
 | Check                                                              | Why                                                                                                  |

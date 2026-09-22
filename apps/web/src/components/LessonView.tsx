@@ -95,7 +95,12 @@ export function LessonView({
 
       <PythonRunnerProvider>
         {lesson.worked_example_code && (
-          <WorkedExample code={lesson.worked_example_code} note={lesson.worked_example_note} />
+          <WorkedExample
+            code={lesson.worked_example_code}
+            note={lesson.worked_example_note}
+            packages={lesson.worked_example_packages}
+            stdin={lesson.worked_example_stdin}
+          />
         )}
 
         {total > 0 && (

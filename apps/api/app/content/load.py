@@ -6,6 +6,15 @@ every deploy rather than treated as a one-off migration.
 
 Reference solutions are read by the loader's validation but never written to the
 database — see the note at the top of app/models.py.
+
+Content removed from the files is removed from the database too. Without that,
+a lesson deleted in a pull request would go on being served indefinitely — which
+is exactly what would have happened to every deployment when Phase 8 rewrote
+Track B. The cost is real and deliberate: a learner's progress and submissions
+for a removed lesson or exercise go with it (the foreign keys cascade). That
+history points at something no learner can see any more, and keeping it would
+leave modules that can never read as complete. Removals are printed, so a
+deleted file shows up in the deploy log as well as in review.
 """
 
 from __future__ import annotations
@@ -13,8 +22,9 @@ from __future__ import annotations
 import argparse
 import asyncio
 from pathlib import Path
+from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -25,7 +35,14 @@ from app.models import Exercise, Lesson, Module, QuizItem, Track
 
 
 async def sync_curriculum(db: AsyncSession, curriculum: Curriculum) -> dict[str, int]:
-    stats = {"tracks": 0, "modules": 0, "lessons": 0, "exercises": 0, "quiz_items": 0}
+    stats = {
+        "tracks": 0,
+        "modules": 0,
+        "lessons": 0,
+        "exercises": 0,
+        "quiz_items": 0,
+        "removed": 0,
+    }
 
     track_ids: dict[str, int] = {}
     for track_file in curriculum.tracks:
@@ -42,17 +59,67 @@ async def sync_curriculum(db: AsyncSession, curriculum: Curriculum) -> dict[str,
         track_ids[track_file.slug] = track.id
         stats["tracks"] += 1
 
+    kept_modules: dict[int, set[str]] = {track_id: set() for track_id in track_ids.values()}
     for module_file in curriculum.modules:
-        module = await _sync_module(db, module_file, track_ids[module_file.track])
+        track_id = track_ids[module_file.track]
+        module = await _sync_module(db, module_file, track_id)
+        kept_modules[track_id].add(module_file.slug)
         stats["modules"] += 1
 
         for lesson_file in module_file.lessons:
-            stats["exercises"] += await _sync_lesson(db, lesson_file, module.id)
+            lesson_id, exercises = await _sync_lesson(db, lesson_file, module.id)
+            stats["exercises"] += exercises
             stats["lessons"] += 1
+            stats["removed"] += await _prune(
+                db,
+                Exercise,
+                Exercise.lesson_id == lesson_id,
+                Exercise.slug,
+                {e.slug for e in lesson_file.exercises},
+            )
 
+        stats["removed"] += await _prune(
+            db,
+            Lesson,
+            Lesson.module_id == module.id,
+            Lesson.slug,
+            {lesson.slug for lesson in module_file.lessons},
+        )
         stats["quiz_items"] += await _sync_quiz(db, module_file, module.id)
+        stats["removed"] += await _prune(
+            db,
+            QuizItem,
+            QuizItem.module_id == module.id,
+            QuizItem.slug,
+            {item.slug for item in module_file.quiz},
+        )
+
+    for track_id, slugs in kept_modules.items():
+        stats["removed"] += await _prune(
+            db, Module, Module.track_id == track_id, Module.slug, slugs
+        )
 
     return stats
+
+
+async def _prune(
+    db: AsyncSession, model: Any, parent: Any, slug_column: Any, keep: set[str]
+) -> int:
+    """Delete rows of `model` under `parent` whose slug is no longer in the files.
+
+    Learner rows hanging off them are removed by the database's ON DELETE
+    CASCADE — see the module docstring for why that is the right trade.
+    """
+    stale = (
+        (await db.execute(select(slug_column).where(parent, slug_column.not_in(keep))))
+        .scalars()
+        .all()
+    )
+    if stale:
+        await db.execute(delete(model).where(parent, slug_column.in_(stale)))
+        for slug in stale:
+            print(f"  removed {model.__tablename__[:-1]} '{slug}' (no longer in content/)")
+    return len(stale)
 
 
 async def _sync_module(db: AsyncSession, module_file: ModuleFile, track_id: int) -> Module:
@@ -81,8 +148,10 @@ async def _sync_module(db: AsyncSession, module_file: ModuleFile, track_id: int)
     return module
 
 
-async def _sync_lesson(db: AsyncSession, lesson_file: LessonFile, module_id: int) -> int:
-    """Upsert a lesson and its exercises; returns the number of exercises."""
+async def _sync_lesson(
+    db: AsyncSession, lesson_file: LessonFile, module_id: int
+) -> tuple[int, int]:
+    """Upsert a lesson and its exercises; returns the lesson's id and its exercise count."""
     result = await db.execute(
         select(Lesson).where(Lesson.module_id == module_id, Lesson.slug == lesson_file.slug)
     )
@@ -97,6 +166,8 @@ async def _sync_lesson(db: AsyncSession, lesson_file: LessonFile, module_id: int
         lesson_file.content_markdown,
         lesson_file.worked_example_code,
         lesson_file.worked_example_note,
+        lesson_file.worked_example_packages,
+        lesson_file.worked_example_stdin,
     )
     if lesson.content_hash != digest:
         lesson.position = lesson_file.position
@@ -104,6 +175,8 @@ async def _sync_lesson(db: AsyncSession, lesson_file: LessonFile, module_id: int
         lesson.content_markdown = lesson_file.content_markdown
         lesson.worked_example_code = lesson_file.worked_example_code
         lesson.worked_example_note = lesson_file.worked_example_note
+        lesson.worked_example_packages = list(lesson_file.worked_example_packages)
+        lesson.worked_example_stdin = list(lesson_file.worked_example_stdin)
         lesson.content_hash = digest
 
     await db.flush()
@@ -153,7 +226,7 @@ async def _sync_lesson(db: AsyncSession, lesson_file: LessonFile, module_id: int
         count += 1
 
     await db.flush()
-    return count
+    return lesson.id, count
 
 
 async def _sync_quiz(db: AsyncSession, module_file: ModuleFile, module_id: int) -> int:

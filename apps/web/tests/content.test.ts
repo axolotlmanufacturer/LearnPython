@@ -28,14 +28,33 @@ interface ExerciseFile {
   scaffold_level: string;
   starter_code?: string;
   stdin?: string[];
-  files?: Record<string, string>;
+  /** As written: literal text, or a reference to a shared file under content/. */
+  files?: Record<string, string | { from: string }>;
   checks: Check[];
   solution_code: string;
   hints?: string[];
   packages?: string[];
 }
 
+/**
+ * Inline `{from: datasets/expression.csv}` references, as the Python loader does
+ * (`_resolve_files` in app/content/loader.py). Duplicated rather than shared
+ * because the two sides are different languages; the Python loader is the one
+ * the product uses, and this only has to agree with it for these tests to be
+ * running the same files a learner would get.
+ */
+function resolveFiles(files: Record<string, string | { from: string }>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(files).map(([name, value]) => [
+      name,
+      typeof value === "string" ? value : readFileSync(path.join(CONTENT_DIR, value.from), "utf8"),
+    ]),
+  );
+}
+
 interface AuthoredExercise extends ExerciseFile {
+  /** Resolved: every reference replaced by the file's contents. */
+  files: Record<string, string>;
   /** Path relative to content/, for readable test names and failure messages. */
   where: string;
 }
@@ -53,7 +72,11 @@ function collectExercises(): AuthoredExercise[] {
       if (path.basename(dir) !== "exercises" || !entry.endsWith(".yaml")) continue;
 
       const data = parse(readFileSync(full, "utf8")) as ExerciseFile;
-      found.push({ ...data, where: path.relative(CONTENT_DIR, full) });
+      found.push({
+        ...data,
+        files: resolveFiles(data.files ?? {}),
+        where: path.relative(CONTENT_DIR, full),
+      });
     }
   };
 
@@ -62,6 +85,57 @@ function collectExercises(): AuthoredExercise[] {
 }
 
 const exercises = collectExercises();
+
+interface WorkedExampleFile {
+  where: string;
+  code: string;
+  packages: string[];
+  stdin: string[];
+  /** Set when the example fails on purpose, in a lesson about reading errors. */
+  raises: string | null;
+}
+
+/**
+ * Every lesson's worked example.
+ *
+ * The first code a learner runs in a lesson, and for a long time the only code
+ * in the curriculum that CI never executed. Track B's examples imported pandas
+ * without declaring it, so every one would have stopped at `import pandas` in
+ * a browser — and nothing noticed, because only exercises were run here.
+ */
+function collectWorkedExamples(): WorkedExampleFile[] {
+  const found: WorkedExampleFile[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir)) {
+      const full = path.join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        walk(full);
+        continue;
+      }
+      if (path.basename(dir) !== "lessons" || !entry.endsWith(".md")) continue;
+      const front = readFileSync(full, "utf8").split(/^---$/m)[1] ?? "";
+      const meta = parse(front) as {
+        worked_example_code?: string;
+        worked_example_packages?: string[];
+        worked_example_stdin?: string[];
+        worked_example_raises?: string;
+      };
+      if (meta.worked_example_code) {
+        found.push({
+          where: path.relative(CONTENT_DIR, full),
+          code: meta.worked_example_code,
+          packages: meta.worked_example_packages ?? [],
+          stdin: meta.worked_example_stdin ?? [],
+          raises: meta.worked_example_raises ?? null,
+        });
+      }
+    }
+  };
+  walk(CONTENT_DIR);
+  return found.sort((a, b) => a.where.localeCompare(b.where));
+}
+
+const workedExamples = collectWorkedExamples();
 
 /**
  * Exercises this runner can actually execute.
@@ -143,12 +217,37 @@ describe("authored curriculum", () => {
   });
 });
 
-describe("exercise authoring conventions", () => {
-  it("gives every exercise at least one check", () => {
-    for (const exercise of exercises) {
-      expect(exercise.checks?.length ?? 0, exercise.where).toBeGreaterThan(0);
-    }
+describe("worked examples", () => {
+  it("has worked examples to check", () => {
+    expect(workedExamples.length).toBeGreaterThan(0);
   });
+
+  // Those that need packages are run under CPython instead, alongside the
+  // exercises that need them: apps/api/tests/test_authored_content_packages.py.
+  const plain = workedExamples.filter((example) => example.packages.length === 0);
+
+  it.each(plain.map((e) => [e.where, e] as const))(
+    "%s runs as intended",
+    async (_where, example) => {
+      const result = await runner.run({ code: example.code, stdin: example.stdin });
+
+      if (example.raises) {
+        // A lesson about reading errors shows one on purpose. Assert it is the
+        // intended error, so a deliberate crash cannot quietly become a
+        // different, accidental one.
+        expect(result.error?.type, `${example.where} should raise ${example.raises}`).toBe(
+          example.raises,
+        );
+        return;
+      }
+
+      expect(
+        result.status,
+        `The worked example in ${example.where} stops with ` +
+          `${result.error?.type}: ${result.error?.message}`,
+      ).toBe("ok");
+    },
+  );
 
   it("labels every check in language a learner can read", () => {
     for (const exercise of exercises) {

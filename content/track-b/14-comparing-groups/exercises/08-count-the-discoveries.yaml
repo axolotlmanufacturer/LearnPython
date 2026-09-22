@@ -1,0 +1,121 @@
+slug: count-the-discoveries
+lesson: many-tests-at-once
+position: 3
+title: Count what each correction finds, and how much of it is real
+bloom: evaluate
+scaffold_level: write_from_spec
+packages: [pandas, scipy]
+prompt_markdown: |
+  Everything up to a p-value for each of the 160 features is done for you, and so
+  is your Benjamini–Hochberg function from the last exercise.
+
+  Because this dataset is synthetic, `truth.csv` records which features were
+  *really* shifted — a luxury no real experiment gives you, and the only way to
+  see directly what each correction costs.
+
+  Print exactly three lines, one per approach, each counting the features below
+  0.05 and how many of those were **not** really shifted:
+
+  ```
+  raw p: 26 found, 6 not really shifted
+  Bonferroni: 20 found, 0 not really shifted
+  Benjamini-Hochberg: 22 found, 2 not really shifted
+  ```
+
+  Then decide, for yourself: if each finding cost a month of follow-up work,
+  which list would you want?
+starter_code: |
+  import pandas as pd
+  from scipy import stats
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  samples = pd.read_csv("samples.csv")
+  truth = pd.read_csv("truth.csv")
+
+  kept = expression[expression.mean(axis=1) >= 6.0]
+  normalised = kept - kept.median()
+  control = samples.loc[samples["condition"] == "control", "sample_id"]
+  treated = samples.loc[samples["condition"] == "treated", "sample_id"]
+
+  p = pd.Series(
+      stats.ttest_ind(normalised[treated], normalised[control], axis=1, equal_var=False).pvalue,
+      index=normalised.index,
+  )
+  really_shifted = set(truth.loc[truth["shifted"], "feature"])
+
+
+  def benjamini_hochberg(pvalues):
+      n = len(pvalues)
+      order = sorted(range(n), key=lambda i: pvalues[i])
+      adjusted = [0.0] * n
+      running_min = 1.0
+      for rank in range(n, 0, -1):
+          i = order[rank - 1]
+          running_min = min(running_min, pvalues[i] * n / rank)
+          adjusted[i] = running_min
+      return adjusted
+
+
+  # Your code here.
+files:
+  expression.csv:
+    from: datasets/expression.csv
+  samples.csv:
+    from: datasets/samples.csv
+  truth.csv:
+    from: datasets/truth.csv
+checks:
+  - kind: stdout
+    label: Counts findings and false findings for each approach
+    expected: |
+      raw p: 26 found, 6 not really shifted
+      Bonferroni: 20 found, 0 not really shifted
+      Benjamini-Hochberg: 22 found, 2 not really shifted
+  - kind: source
+    label: Works the counts out rather than typing them in
+    forbid_text: ["26", "22"]
+hints:
+  - "`p.index[p < 0.05]` gives the names of the features below the threshold."
+  - Bonferroni is `(p * len(p)).clip(upper=1.0)`; Benjamini–Hochberg needs `benjamini_hochberg(list(p))` put back into a Series with `index=p.index`.
+  - '"Not really shifted" is how many found names are not in `really_shifted` — a set difference.'
+  - Writing a small function that takes the adjusted values and prints one line keeps the three lines consistent.
+solution_code: |
+  import pandas as pd
+  from scipy import stats
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  samples = pd.read_csv("samples.csv")
+  truth = pd.read_csv("truth.csv")
+
+  kept = expression[expression.mean(axis=1) >= 6.0]
+  normalised = kept - kept.median()
+  control = samples.loc[samples["condition"] == "control", "sample_id"]
+  treated = samples.loc[samples["condition"] == "treated", "sample_id"]
+
+  p = pd.Series(
+      stats.ttest_ind(normalised[treated], normalised[control], axis=1, equal_var=False).pvalue,
+      index=normalised.index,
+  )
+  really_shifted = set(truth.loc[truth["shifted"], "feature"])
+
+
+  def benjamini_hochberg(pvalues):
+      n = len(pvalues)
+      order = sorted(range(n), key=lambda i: pvalues[i])
+      adjusted = [0.0] * n
+      running_min = 1.0
+      for rank in range(n, 0, -1):
+          i = order[rank - 1]
+          running_min = min(running_min, pvalues[i] * n / rank)
+          adjusted[i] = running_min
+      return adjusted
+
+
+  def report(name, adjusted):
+      found = set(adjusted.index[adjusted < 0.05])
+      print(f"{name}: {len(found)} found, {len(found - really_shifted)} not really shifted")
+
+
+  report("raw p", p)
+  report("Bonferroni", (p * len(p)).clip(upper=1.0))
+  report("Benjamini-Hochberg", pd.Series(benjamini_hochberg(list(p)), index=p.index))

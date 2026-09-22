@@ -14,7 +14,7 @@ install: ## Install web and API dependencies
 	npm install
 	python3 -m venv $(VENV) || true
 	$(PY) -m pip install --upgrade pip
-	$(PY) -m pip install -e "$(API)[dev]"
+	$(PY) -m pip install -e "$(API)[dev,content]"
 	npm run sync-pyodide --workspace=$(WEB)
 
 .PHONY: dev

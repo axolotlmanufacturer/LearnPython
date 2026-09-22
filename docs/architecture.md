@@ -1,7 +1,7 @@
 # Architecture Note
 
-Status: accepted for Phases 0–5 (Track A complete; review and recognition built)
-Last updated: Phase 5
+Status: accepted for Phases 0–8 (Tracks A and B complete; review and recognition built)
+Last updated: Phase 8
 
 This note confirms — or, where it deviates, justifies a deviation from — the stack
 proposed in Section 4 of the product brief and the schema sketched in Section 7. It is
@@ -77,12 +77,12 @@ end-to-end suite all self-host — working offline should be possible, and CI mu
 not depend on a third party being up to decide whether the build is green. The
 code path exercised is identical either way. See `deployment.md`.
 
-**Still open for Track B (Phase 7):** third-party wheels (`numpy`, `pandas`,
-`scipy`, `matplotlib`) are not in the npm package and are fetched by `micropip`
-at runtime. With the CDN as the default this is no longer a conflict — the wheels
-come from the same place as the interpreter — but it is still tens of megabytes
-per learner who reaches Track B, and still needs the availability spike the brief
-asks for at the start of Phase 7.
+**Track B's libraries (settled in Phases 7–8):** `numpy`, `pandas`, `scipy` and
+`matplotlib` are not in the npm package. They are fetched with
+`pyodide.loadPackage` — not `micropip` — from the same index URL as the
+interpreter, and only when an exercise declares them, so Track A learners never
+download them. `seaborn` is left out. The spike, the per-module download cost
+and what remains unmeasured are in `spike-scientific-stack.md`.
 
 ### 1.2 Timeout mechanism: worker termination, not an interrupt buffer
 
@@ -335,8 +335,9 @@ benefit at MVP scale.
 Recorded so they are visible decisions rather than omissions:
 
 - OAuth providers (§5).
-- Track B content, and the `micropip` availability spike the brief asks for at the start
-  of Phase 7 (§1.1).
+- Running Track B in a real browser against the CDN build. Its content is verified
+  in CPython at the Pyodide versions and its plumbing in Node's Pyodide, but the
+  development network blocked the CDN (`spike-scientific-stack.md` §§5, 7).
 - A learner's own view of their review history — which items they keep missing. The data
   is all in `quiz_attempts`; nothing reads it back yet.
 - `SharedArrayBuffer` interrupt buffer (§1.2).

@@ -1,0 +1,31 @@
+slug: predict-the-spread
+lesson: why-measurements-vary
+position: 1
+title: Predict how much identical samples disagree
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  These are `gene_004`'s values in the six **control** samples — same feature,
+  same condition, same handling.
+
+  Predict the three printed lines before you run it. Then look at the last one
+  and remember: on this scale a difference of 1 is twice as much.
+starter_code: |
+  control = [10.02, 9.41, 9.98, 9.76, 10.01, 9.17]
+
+  print("lowest: ", min(control))
+  print("highest:", max(control))
+  print("spread: ", round(max(control) - min(control), 2))
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      lowest:  9.17
+      highest: 10.02
+      spread:  0.85
+solution_code: |
+  control = [10.02, 9.41, 9.98, 9.76, 10.01, 9.17]
+
+  print("lowest: ", min(control))
+  print("highest:", max(control))
+  print("spread: ", round(max(control) - min(control), 2))

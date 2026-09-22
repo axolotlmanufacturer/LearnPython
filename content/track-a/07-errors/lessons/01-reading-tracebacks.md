@@ -13,6 +13,7 @@ worked_example_code: |
 
   print(report([10, 20, 30]))
   print(report([]))
+worked_example_raises: ZeroDivisionError
 worked_example_note: >-
   The first call works. The second fails two function calls deep — run it and
   look at how many frames the traceback has, and which one is actually the

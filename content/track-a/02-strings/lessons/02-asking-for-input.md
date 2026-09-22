@@ -9,6 +9,7 @@ worked_example_code: |
   age = input("How old are you? ")
   next_year = int(age) + 1
   print(f"Next year you will be {next_year}.")
+worked_example_stdin: ["Ada", "36"]
 worked_example_note: >-
   Two inputs, handled differently on purpose. The name is used as it arrives.
   The age has to be converted with int() before it can be added to, because

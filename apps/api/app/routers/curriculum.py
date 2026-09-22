@@ -148,6 +148,8 @@ async def get_lesson(
         content_markdown=lesson.content_markdown,
         worked_example_code=lesson.worked_example_code,
         worked_example_note=lesson.worked_example_note,
+        worked_example_packages=list(lesson.worked_example_packages),
+        worked_example_stdin=list(lesson.worked_example_stdin),
         exercises=[ExerciseOut.model_validate(exercise) for exercise in lesson.exercises],
     )
 

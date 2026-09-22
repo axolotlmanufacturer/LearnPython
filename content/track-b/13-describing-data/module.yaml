@@ -1,0 +1,24 @@
+slug: describing-data
+track: track-b
+position: 13
+title: Summarising Features and Samples
+summary_markdown: >-
+  What a row of measurements is telling you: its middle and its spread, computed
+  first with functions you write yourself and then with pandas along the right
+  direction. Then the two clean-up steps every analysis of this kind needs —
+  dropping features too faint to trust, and removing the part of each sample's
+  signal that is about the instrument rather than the biology.
+
+objectives:
+  - text: Write functions for the mean, sample variance and sample standard deviation, and check them by hand
+    bloom: apply
+  - text: Explain why sample variance divides by n − 1
+    bloom: understand
+  - text: Compute per-feature and per-sample statistics with pandas, choosing the axis deliberately
+    bloom: apply
+  - text: Select one condition's samples using the sample table
+    bloom: apply
+  - text: Remove low-signal features with a boolean mask and a stated threshold
+    bloom: apply
+  - text: Normalise samples with a loop and then vectorised, and explain what the step assumes
+    bloom: analyze

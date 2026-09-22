@@ -1,0 +1,45 @@
+slug: modify-difference-vs-spread
+lesson: why-measurements-vary
+position: 2
+title: Put the difference next to the spread
+bloom: analyze
+scaffold_level: modify
+prompt_markdown: |
+  This program prints the difference between `gene_001`'s treated and control
+  averages. On its own that number means very little.
+
+  Change it so it prints **two** lines: the difference between the averages, and
+  then the spread (highest minus lowest) of the **control** values. Round both to
+  two decimal places, and use the labels shown below.
+
+  ```
+  difference: 0.12
+  control spread: 1.48
+  ```
+
+  Then look at the two numbers together. Which is bigger — and what does that tell
+  you about whether this experiment can say anything about `gene_001`?
+starter_code: |
+  control = [7.61, 6.30, 7.68, 7.78, 7.08, 6.41]
+  treated = [6.92, 7.12, 7.54, 6.92, 7.34, 7.72]
+
+  difference = sum(treated) / len(treated) - sum(control) / len(control)
+
+  print("difference:", round(difference, 2))
+checks:
+  - kind: stdout
+    label: Prints the difference and then the control spread
+    expected: |
+      difference: 0.12
+      control spread: 1.48
+hints:
+  - The spread is the largest value minus the smallest.
+  - "`max(control) - min(control)`, rounded to two places."
+solution_code: |
+  control = [7.61, 6.30, 7.68, 7.78, 7.08, 6.41]
+  treated = [6.92, 7.12, 7.54, 6.92, 7.34, 7.72]
+
+  difference = sum(treated) / len(treated) - sum(control) / len(control)
+
+  print("difference:", round(difference, 2))
+  print("control spread:", round(max(control) - min(control), 2))

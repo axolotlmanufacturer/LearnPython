@@ -1,0 +1,87 @@
+items:
+  - slug: gap-as-none
+    position: 1
+    kind: multiple_choice
+    prompt_markdown: |
+      When parsing by hand, why turn an empty cell into `None` rather than `0`?
+    options:
+      - 0 is a real, very low measurement, so it would silently drag every average down
+      - "`None` takes less memory"
+      - "`float()` cannot produce 0"
+      - It makes no difference to the results
+    answer: 0 is a real, very low measurement, so it would silently drag every average down
+    explanation_markdown: >-
+      `None` means "nothing here", and arithmetic on it fails loudly — which is
+      what you want, because it forces a decision about what a gap means. A 0
+      decides for you, wrongly, and nothing afterwards warns you.
+
+  - slug: loc-or-iloc
+    position: 2
+    kind: multiple_choice
+    prompt_markdown: |
+      After filtering some rows out of a table, which still reliably finds
+      `gene_003` in sample `S02`?
+    options:
+      - '`expression.loc["gene_003", "S02"]`'
+      - "`expression.iloc[2, 1]`"
+      - Both, always
+      - Neither
+    answer: '`expression.loc["gene_003", "S02"]`'
+    explanation_markdown: >-
+      `loc` looks up by label, so it finds `gene_003` wherever it now sits.
+      `iloc` looks up by position, and after filtering, whatever is in third
+      place may be a different gene entirely — with no error to tell you.
+
+  - slug: why-gaps-cluster
+    position: 3
+    kind: multiple_choice
+    prompt_markdown: |
+      In this dataset the missing values are concentrated in a few features rather
+      than scattered evenly. Why?
+    options:
+      - They are features measured near the detection limit, so they are the ones that fall below it
+      - The file was damaged in those rows
+      - pandas drops values at random
+      - Those samples were not measured
+    answer: They are features measured near the detection limit, so they are the ones that fall below it
+    explanation_markdown: >-
+      A gap here means "too low to measure". A feature that is faint everywhere
+      hovers near the limit and falls below it often; a strongly measured one
+      essentially never does. So the pattern of gaps is itself information about
+      the features.
+
+  - slug: axis-one
+    position: 4
+    kind: multiple_choice
+    prompt_markdown: |
+      With features as rows and samples as columns, what does
+      `expression.isna().sum(axis=1)` give you?
+    options:
+      - The number of gaps in each feature
+      - The number of gaps in each sample
+      - The total number of gaps
+      - The number of features with no gaps
+    answer: The number of gaps in each feature
+    explanation_markdown: >-
+      `axis=1` works across each row, and each row is a feature. The default,
+      `axis=0`, works down each column — one answer per sample. With this
+      layout, `axis=1` is "for each feature", which is the direction you will
+      want most often.
+
+  - slug: recall-keyerror-columns
+    position: 5
+    kind: multiple_choice
+    reviews_module_slug: collections
+    prompt_markdown: |
+      From Module 5 — `expression["S1"]` raises `KeyError: 'S1'`. What does
+      that tell you?
+    options:
+      - There is no column with exactly that name
+      - The column is empty
+      - The file failed to load
+      - The values are the wrong type
+    answer: There is no column with exactly that name
+    explanation_markdown: >-
+      The same error a dictionary raises for a missing key, and for the same
+      reason. Print `list(expression.columns)` and compare character by
+      character — here the real name is `S01`.

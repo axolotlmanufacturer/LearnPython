@@ -1,0 +1,35 @@
+slug: debug-the-sample-name
+lesson: a-table-in-python
+position: 3
+title: Find the fault in the sample name
+bloom: analyze
+scaffold_level: debug
+packages: [pandas]
+prompt_markdown: |
+  This program is meant to print the average of every feature in sample `S01`,
+  rounded to two places. It stops with a `KeyError`.
+
+  Run it first and read the error — a `KeyError` names exactly what was asked
+  for and not found. Then compare that against the real column names and fix it.
+starter_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+
+  print(round(expression["S1"].mean(), 2))
+files:
+  expression.csv:
+    from: datasets/expression.csv
+checks:
+  - kind: stdout
+    label: Prints the average of sample S01
+    expected: "9.06"
+hints:
+  - Print `list(expression.columns)` and compare it with what the code asks for.
+  - The sample names have two digits after the S.
+solution_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+
+  print(round(expression["S01"].mean(), 2))

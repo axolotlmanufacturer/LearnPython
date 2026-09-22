@@ -1,0 +1,55 @@
+slug: report-the-gaps
+lesson: missing-values
+position: 1
+title: Count the gaps before touching them
+bloom: apply
+scaffold_level: write_from_spec
+packages: [pandas]
+prompt_markdown: |
+  Load the dataset and print exactly three lines reporting its gaps:
+
+  ```
+  missing values: 315
+  features with at least one gap: 39
+  features never detected: 15
+  ```
+
+  Your program must work these numbers out — the checks run it on the real file
+  and compare what you computed.
+
+  Counting is the whole job here. Nothing gets dropped or filled in yet: a gap you
+  have counted is information, and the next module decides what to do about it.
+starter_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+
+  # Your code here.
+files:
+  expression.csv:
+    from: datasets/expression.csv
+checks:
+  - kind: stdout
+    label: Reports the total gaps, the features with any gap, and those never detected
+    expected: |
+      missing values: 315
+      features with at least one gap: 39
+      features never detected: 15
+  - kind: source
+    label: Works the numbers out rather than typing them in
+    forbid_text: ["315", "39", "15"]
+hints:
+  - "`expression.isna()` is a table of True/False, True where a value is missing."
+  - "Summing it twice — `.sum().sum()` — counts every True in the table."
+  - '`.any(axis=1)` asks, for each feature, "is anything missing?" — then sum those.'
+  - '`.all(axis=1)` asks "is everything missing?" for each feature.'
+solution_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+
+  gaps = expression.isna()
+
+  print("missing values:", gaps.sum().sum())
+  print("features with at least one gap:", gaps.any(axis=1).sum())
+  print("features never detected:", gaps.all(axis=1).sum())

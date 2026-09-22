@@ -1,0 +1,129 @@
+slug: show-and-interpret
+lesson: the-pipeline
+position: 3
+title: Draw it, and say what it means
+bloom: create
+scaffold_level: open_ended
+packages: [pandas, scipy, matplotlib]
+prompt_markdown: |
+  The last stage. Extend your pipeline so it ends with:
+
+  1. **A volcano plot** of all 160 features — effect across, −log10 adjusted p
+     up, findings highlighted in a different colour, dashed lines at the two
+     thresholds, both axes labelled, and a title.
+  2. **A written interpretation**, stored as a string called `interpretation`:
+     two to four sentences saying what the result means, in words someone who has
+     done Module 11 and nothing since could follow.
+
+  The plot is checked automatically. The writing is not — use the checklist below
+  to judge it, and be as honest about it as you would want a reviewer to be.
+starter_code: |
+  import pandas as pd
+  import matplotlib.pyplot as plt
+  from scipy import stats
+
+  # Start from your pipeline so far, then add the plot and the words.
+
+  interpretation = ""
+files:
+  expression.csv:
+    from: datasets/expression.csv
+  samples.csv:
+    from: datasets/samples.csv
+checks:
+  - kind: expr
+    label: Plots all 160 features
+    expression: __plots__[0]["points"] if __plots__ else 0
+    expected: 160
+  - kind: expr
+    label: Highlights the findings in a different colour
+    expression: __plots__[0]["point_colours"] >= 2 if __plots__ else False
+    expected: true
+  - kind: expr
+    label: Draws both thresholds
+    expression: __plots__[0]["lines"] >= 3 if __plots__ else False
+    expected: true
+  - kind: expr
+    label: Labels both axes and gives the plot a title
+    expression: bool(__plots__ and __plots__[0]["xlabel"] and __plots__[0]["ylabel"] and __plots__[0]["title"])
+    expected: true
+  - kind: expr
+    label: Writes an interpretation of two to four sentences
+    expression: >-
+      2 <= len(__import__("re").findall(r"[^.!?]+[.!?]", interpretation.strip())) <= 4
+    expected: true
+rubric:
+  - Does it say how many features changed, and in which directions?
+  - Does it give a sense of size — "roughly three to six times" — and not only that they were significant?
+  - Does it say what the analysis cannot tell you, such as what the genes do or whether the changes matter?
+  - Would it make sense to someone who has done Module 11 and nothing since?
+  - Does it avoid the word "proves"?
+solution_code: |
+  import numpy as np
+  import pandas as pd
+  import matplotlib.pyplot as plt
+  from scipy import stats
+
+
+  def load():
+      return pd.read_csv("expression.csv", index_col="feature"), pd.read_csv("samples.csv")
+
+
+  def prepare(expression, threshold=6.0):
+      kept = expression[expression.mean(axis=1) >= threshold]
+      return kept - kept.median()
+
+
+  def benjamini_hochberg(pvalues):
+      n = len(pvalues)
+      order = sorted(range(n), key=lambda i: pvalues[i])
+      adjusted = [0.0] * n
+      running_min = 1.0
+      for rank in range(n, 0, -1):
+          i = order[rank - 1]
+          running_min = min(running_min, pvalues[i] * n / rank)
+          adjusted[i] = running_min
+      return adjusted
+
+
+  def analyse(normalised, samples):
+      control = samples.loc[samples["condition"] == "control", "sample_id"]
+      treated = samples.loc[samples["condition"] == "treated", "sample_id"]
+      a, b = normalised[treated], normalised[control]
+      results = pd.DataFrame(
+          {
+              "effect": a.mean(axis=1) - b.mean(axis=1),
+              "p": stats.ttest_ind(a, b, axis=1, equal_var=False).pvalue,
+          },
+          index=normalised.index,
+      )
+      results["p_adj"] = benjamini_hochberg(list(results["p"]))
+      results["finding"] = (results["p_adj"] < 0.05) & (results["effect"].abs() >= 1)
+      return results
+
+
+  def volcano(results):
+      colours = ["crimson" if f else "grey" for f in results["finding"]]
+      plt.scatter(results["effect"], -np.log10(results["p_adj"]), c=colours)
+      plt.axhline(-np.log10(0.05), linestyle="--", color="black")
+      plt.axvline(-1, linestyle="--", color="black")
+      plt.axvline(1, linestyle="--", color="black")
+      plt.xlabel("effect: treated minus control (log2)")
+      plt.ylabel("-log10 adjusted p-value")
+      plt.title(f"{int(results['finding'].sum())} of {len(results)} features changed")
+      plt.show()
+
+
+  expression, samples = load()
+  results = analyse(prepare(expression), samples)
+  volcano(results)
+
+  interpretation = (
+      "Twenty of the 160 well-measured genes changed between the conditions: ten "
+      "went up in the treated samples and ten went down, each by roughly three to "
+      "six times. They are the genes that cleared both a 5% false-discovery-rate "
+      "threshold and a doubling-or-halving effect size, so about one in twenty could "
+      "still be a false lead. The analysis says which genes to look at next, not "
+      "what they do or whether the changes matter biologically."
+  )
+  print(interpretation)

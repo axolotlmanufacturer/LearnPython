@@ -94,18 +94,24 @@ The pleasing part is that this is not a compromise imposed by the bytes. It is
 what the pedagogy wanted anyway. The brief's own Track B sequence is _"computing
 statistics by hand and then with the standard tools"_, so:
 
-| Module | Needs             | Why                                                                  |
-| ------ | ----------------- | -------------------------------------------------------------------- |
-| 11     | `pandas`          | Loading and cleaning tabular data                                    |
-| 12     | `pandas`          | Describing data — the summary statistics are written by hand first   |
-| 13     | `pandas`, `scipy` | Comparing two groups; `scipy.stats` arrives with the first real test |
+| Module | Needs                           | Why                                                                                |
+| ------ | ------------------------------- | ---------------------------------------------------------------------------------- |
+| 11     | nothing                         | Orientation: reading a file and printing values, in plain Python                   |
+| 12     | `pandas`                        | The table is parsed by hand first, then loaded with pandas                         |
+| 13     | `pandas`                        | Statistics are written as your own functions first, then computed along an axis    |
+| 14     | `pandas`, `scipy`               | `scipy.stats` arrives when a t-test stops being something you compute by shuffling |
+| 15     | `pandas`, `matplotlib`          | Plotting; results are supplied precomputed so no scipy is needed                   |
+| 16     | `pandas`, `scipy`, `matplotlib` | The capstone, which needs all of it                                                |
+
+(Phase 7 first placed these at 11–13; Phase 8 realigned the track to Section 5A,
+which added an orientation module ahead of them and moved each one later.)
 
 A learner meets scipy at the moment a t-test stops being something they compute
 by hand — which is exactly when the download is justified to them, and when they
 can tell what it bought.
 
-matplotlib is deliberately deferred past the seed modules. It is the single
-biggest marginal cost (8 extra wheels) and the plotting modules are 14–16.
+matplotlib is deferred to Module 15. It is the single biggest marginal cost — eight
+extra wheels — and nothing before the visualisation module needs it. See §7.
 
 ## 4. Verifying Track B content without a browser
 
@@ -165,3 +171,42 @@ became:
 - Modules 11–13, whose exercises declare `pandas` (11, 12) and `scipy` (13),
   matching the staging in §3. Every exercise that computes a statistic by hand
   declares nothing at all and runs in plain Python.
+
+## 7. Phase 8: matplotlib in, seaborn out
+
+**matplotlib is allowed** (`ALLOWED_PACKAGES`), from Module 15. Section 5A makes
+producing _and reading_ a volcano plot part of the track's success criterion, and
+there is no smaller way to draw one. Its cost is loaded only by the modules that
+plot, so a learner who stops at Module 14 never pays it.
+
+**seaborn is not**, although the brief names it alongside matplotlib. It is not in
+the Pyodide distribution (checked against `pyodide-lock.json`), so it would come
+from PyPI via micropip — the one mechanism this spike ruled out, and a second
+third-party origin in a Content-Security-Policy that exists to contain untrusted
+code. Nothing Track B draws — a histogram, a boxplot, a volcano plot — needs it.
+
+### What running matplotlib in a worker required
+
+- **The Agg backend, forced.** A Web Worker has no DOM, so any backend that draws
+  into the page fails on the first `plt.show()`. The harness sets
+  `MPLBACKEND=Agg` before learner code can import pyplot, and captures open
+  figures as PNG afterwards.
+- **A silenced warning.** Under Agg, `plt.show()` warns that the canvas is
+  non-interactive. True, irrelevant, and printed in red in a beginner's output
+  pane as though they had done something wrong.
+- **Generated alt text.** Each captured figure is described from what was drawn —
+  title, axis labels, how many points or bars — so a plot has a text equivalent
+  (WCAG 1.1.1). An unlabelled plot is described as unlabelled.
+- **Checks that can see plots.** Exercise checks read a `__plots__` summary
+  rather than matplotlib's object model, so they do not depend on the learner's
+  import alias or on one matplotlib version's internals.
+
+### Still unverified
+
+Everything above runs under CPython in `apps/api/tests/test_harness_figures.py`,
+with matplotlib 3.11.2 against Pyodide's 3.10.8. Whether Pyodide's matplotlib
+build honours `MPLBACKEND` in a worker — rather than installing a browser backend
+of its own — is the most likely point of failure in the whole of Track B, and it
+joins §5's list: **it needs one real browser run against a reachable CDN.** If it
+does not honour it, the fix is one line in `_prepare_plotting` in `harness.py`
+(`matplotlib.use("Agg")` after import); nothing else changes.

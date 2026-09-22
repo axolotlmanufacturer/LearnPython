@@ -1,0 +1,72 @@
+slug: write-the-highlighted-volcano
+lesson: the-volcano-plot
+position: 2
+title: Highlight what clears both thresholds
+bloom: apply
+scaffold_level: write_from_spec
+packages: [pandas, numpy, matplotlib]
+prompt_markdown: |
+  Build the full volcano plot from `results.csv`:
+
+  - a boolean column or Series called `significant`: adjusted p below 0.05
+    **and** an effect of at least 1 in either direction;
+  - every feature as a point, with the significant ones in a different colour
+    from the rest;
+  - a dashed horizontal line at the significance threshold and dashed vertical
+    lines at −1 and +1;
+  - both axes labelled, and a title.
+starter_code: |
+  import numpy as np
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  results = pd.read_csv("results.csv", index_col="feature")
+
+  # Your code here.
+files:
+  results.csv:
+    from: datasets/results.csv
+checks:
+  - kind: expr
+    label: Marks 20 features as significant on both thresholds
+    expression: int(significant.sum())
+    expected: 20
+  - kind: expr
+    label: Plots all 160 features
+    expression: __plots__[0]["points"] if __plots__ else 0
+    expected: 160
+  - kind: expr
+    label: Colours significant points differently from the rest
+    expression: __plots__[0]["point_colours"] >= 2 if __plots__ else False
+    expected: true
+  - kind: expr
+    label: Draws the three threshold lines
+    expression: __plots__[0]["lines"] >= 3 if __plots__ else False
+    expected: true
+  - kind: expr
+    label: Labels both axes and gives it a title
+    expression: bool(__plots__ and __plots__[0]["xlabel"] and __plots__[0]["ylabel"] and __plots__[0]["title"])
+    expected: true
+hints:
+  - '`(results["p_adj"] < 0.05) & (results["effect"].abs() >= 1)` — brackets around each half.'
+  - 'A list of colours, one per point, can be passed as `c=`: `["crimson" if s else "grey" for s in significant]`.'
+  - '`plt.axhline(-np.log10(0.05), linestyle="--")` draws the horizontal line; `plt.axvline` the vertical ones.'
+solution_code: |
+  import numpy as np
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  results = pd.read_csv("results.csv", index_col="feature")
+
+  height = -np.log10(results["p_adj"])
+  significant = (results["p_adj"] < 0.05) & (results["effect"].abs() >= 1)
+  colours = ["crimson" if s else "grey" for s in significant]
+
+  plt.scatter(results["effect"], height, c=colours)
+  plt.axhline(-np.log10(0.05), linestyle="--", color="black")
+  plt.axvline(-1, linestyle="--", color="black")
+  plt.axvline(1, linestyle="--", color="black")
+  plt.xlabel("effect: treated minus control (log2)")
+  plt.ylabel("-log10 adjusted p-value")
+  plt.title("Volcano plot: 20 features changed")
+  plt.show()

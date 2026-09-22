@@ -31,6 +31,24 @@ def test_modules_are_numbered_consecutively_from_zero():
     assert positions == list(range(len(positions))), f"track-a positions are {positions}"
 
 
+def test_track_b_is_modules_eleven_to_sixteen():
+    # §5A specifies six modules, 11 to 16, in this order. Asserted by slug as
+    # well as position, because the realignment in Phase 8 moved three modules
+    # and a stale position would otherwise pass unnoticed.
+    track_b = sorted(
+        (m for m in CURRICULUM.modules if m.track == "track-b"), key=lambda m: m.position
+    )
+
+    assert [(m.position, m.slug) for m in track_b] == [
+        (11, "biological-data"),
+        (12, "tabular-data"),
+        (13, "describing-data"),
+        (14, "comparing-groups"),
+        (15, "visualising-data"),
+        (16, "differential-analysis"),
+    ]
+
+
 def test_the_first_module_is_the_orientation():
     first = min(CURRICULUM.modules, key=lambda m: m.position)
 
@@ -119,6 +137,31 @@ def test_the_capstone_module_is_open_ended_throughout():
         for exercise in lesson.exercises:
             assert exercise.scaffold_level is ScaffoldLevel.OPEN_ENDED
             assert exercise.rubric, f"{exercise.slug} is open-ended but offers no rubric"
+
+
+def test_track_bs_capstone_is_open_ended_throughout():
+    # §5A: learners "independently assemble the full pipeline", graded against
+    # ground truth for the quantitative part and a rubric for the writing.
+    capstone = next(m for m in CURRICULUM.modules if m.slug == "differential-analysis")
+
+    for lesson in capstone.lessons:
+        for exercise in lesson.exercises:
+            assert exercise.scaffold_level is ScaffoldLevel.OPEN_ENDED
+            assert exercise.rubric, f"{exercise.slug} is open-ended but offers no rubric"
+
+
+def test_track_b_uses_the_shared_dataset_rather_than_copies_of_it():
+    # One source of truth for the matrix the capstone grades against. A pasted
+    # copy would silently disagree the first time the generator is re-run.
+    matrix = (get_settings().content_dir / "datasets" / "expression.csv").read_text()
+    for module in CURRICULUM.modules:
+        for lesson in module.lessons:
+            for exercise in lesson.exercises:
+                for name, contents in exercise.files.items():
+                    if name == "expression.csv" and len(contents) > 1000:
+                        assert contents == matrix, (
+                            f"{exercise.slug} carries its own copy of the expression matrix"
+                        )
 
 
 def test_module_zero_asks_nothing_above_analyze():

@@ -1,0 +1,63 @@
+slug: modify-to-one-condition
+lesson: along-an-axis
+position: 2
+title: Average over one condition, not all twelve samples
+bloom: apply
+scaffold_level: modify
+packages: [pandas]
+prompt_markdown: |
+  This program averages every feature over all twelve samples, which mixes the
+  two conditions together and hides exactly the thing the experiment is about.
+
+  Change it so that it computes two per-feature averages — one over the
+  **control** samples and one over the **treated** samples — stored in
+  `control_means` and `treated_means`. Use the sample table to find which columns
+  are which; do not type sample names in.
+starter_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  samples = pd.read_csv("samples.csv")
+
+  all_means = expression.mean(axis=1)
+
+  print(all_means.head(3).round(2))
+files:
+  expression.csv:
+    from: datasets/expression.csv
+  samples.csv:
+    from: datasets/samples.csv
+checks:
+  - kind: expr
+    label: control_means averages gene_001 over its six control samples
+    expression: round(control_means["gene_001"], 2)
+    expected: 7.14
+  - kind: expr
+    label: treated_means averages gene_001 over its six treated samples
+    expression: round(treated_means["gene_001"], 2)
+    expected: 7.26
+  - kind: expr
+    label: Both have one value per feature
+    expression: "[len(control_means), len(treated_means)]"
+    expected: [200, 200]
+  - kind: source
+    label: Finds the samples from the sample table rather than typing their names
+    forbid_text: ['"S01"', '"S02"', "'S01'", "'S02'"]
+hints:
+  - '`samples.loc[samples["condition"] == "control", "sample_id"]` gives the control sample names.'
+  - A list of names in square brackets selects those columns — `expression[control]`.
+  - "`expression[control].mean(axis=1)` averages each feature over just those columns."
+solution_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  samples = pd.read_csv("samples.csv")
+
+  control = samples.loc[samples["condition"] == "control", "sample_id"]
+  treated = samples.loc[samples["condition"] == "treated", "sample_id"]
+
+  control_means = expression[control].mean(axis=1)
+  treated_means = expression[treated].mean(axis=1)
+
+  print(control_means.head(3).round(2))
+  print(treated_means.head(3).round(2))

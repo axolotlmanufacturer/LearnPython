@@ -1,0 +1,22 @@
+slug: visualising-data
+track: track-b
+position: 15
+title: Seeing the Result
+summary_markdown: >-
+  Three plots, and — weighted just as heavily — how to read them. A histogram
+  for the shape of one sample, a boxplot for one feature across conditions, and
+  the volcano plot, which puts every feature's effect and its evidence on one
+  picture and turns the whole of Module 14 into something you can see at a
+  glance.
+
+objectives:
+  - text: Draw a histogram and a boxplot with labelled axes
+    bloom: apply
+  - text: Read a boxplot and say whether two conditions overlap
+    bloom: analyze
+  - text: Build a volcano plot from effect sizes and adjusted p-values
+    bloom: apply
+  - text: Explain why a volcano plot highlights points that cross both a significance and an effect-size threshold
+    bloom: understand
+  - text: Read a volcano plot to identify changed features and the ones that are significant but too small to matter
+    bloom: evaluate

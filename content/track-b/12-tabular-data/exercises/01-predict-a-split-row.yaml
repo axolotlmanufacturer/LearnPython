@@ -1,0 +1,33 @@
+slug: predict-a-split-row
+lesson: parsing-by-hand
+position: 1
+title: Predict what split() does with a gap
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  `gene_002` was not detected in two of the four samples, so its line in the file
+  ends in two empty cells: `gene_002,4.65,4.69,,`
+
+  Predict the three printed lines before you run it. Pay particular attention to
+  the length — how many pieces does splitting on four commas give you?
+starter_code: |
+  line = "gene_002,4.65,4.69,,"
+  parts = line.split(",")
+
+  print(parts)
+  print(len(parts))
+  print(parts[3] == "")
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      ['gene_002', '4.65', '4.69', '', '']
+      5
+      True
+solution_code: |
+  line = "gene_002,4.65,4.69,,"
+  parts = line.split(",")
+
+  print(parts)
+  print(len(parts))
+  print(parts[3] == "")

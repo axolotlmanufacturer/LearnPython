@@ -35,7 +35,7 @@ import pytest
 
 from app.config import get_settings
 from app.content.loader import harness_payload, load_curriculum
-from app.content.schema import ExerciseFile
+from app.content.schema import ExerciseFile, LessonFile
 
 # apps/api/tests/ -> repository root -> the harness the browser also runs.
 HARNESS = (
@@ -55,11 +55,26 @@ def _packaged_exercises() -> list[tuple[str, ExerciseFile]]:
     return found
 
 
+def _packaged_worked_examples() -> list[tuple[str, LessonFile]]:
+    """Every lesson whose worked example declares packages."""
+    curriculum = load_curriculum(get_settings().content_dir)
+    return [
+        (f"{module.slug}/{lesson.slug}", lesson)
+        for module in curriculum.modules
+        for lesson in module.lessons
+        if lesson.worked_example_code and lesson.worked_example_packages
+    ]
+
+
 EXERCISES = _packaged_exercises()
+WORKED_EXAMPLES = _packaged_worked_examples()
 
 #: Union of everything the authored content asks for, so a missing library is
 #: reported once and clearly rather than as a wall of identical failures.
-REQUIRED = sorted({name for _, exercise in EXERCISES for name in exercise.packages})
+REQUIRED = sorted(
+    {name for _, exercise in EXERCISES for name in exercise.packages}
+    | {name for _, lesson in WORKED_EXAMPLES for name in lesson.worked_example_packages}
+)
 MISSING = [name for name in REQUIRED if importlib.util.find_spec(name) is None]
 
 pytestmark = pytest.mark.skipif(
@@ -71,12 +86,15 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def _run(code: str, exercise: ExerciseFile) -> dict[str, Any]:
-    """Grade `code` with the same harness and payload the browser would use."""
+def _harness(payload: dict[str, Any]) -> dict[str, Any]:
     namespace: dict[str, Any] = {"__name__": "__harness__"}
     exec(compile(HARNESS.read_text(encoding="utf-8"), str(HARNESS), "exec"), namespace)
+    return json.loads(namespace["run_submission"](json.dumps(payload)))
 
-    payload = json.dumps(
+
+def _run(code: str, exercise: ExerciseFile) -> dict[str, Any]:
+    """Grade `code` with the same harness and payload the browser would use."""
+    return _harness(
         {
             "code": code,
             "stdin": list(exercise.stdin),
@@ -84,7 +102,6 @@ def _run(code: str, exercise: ExerciseFile) -> dict[str, Any]:
             "files": dict(exercise.files),
         }
     )
-    return json.loads(namespace["run_submission"](payload))
 
 
 def test_there_are_track_b_exercises_to_check():
@@ -124,4 +141,16 @@ def test_the_starter_code_does_not_already_pass(where: str, exercise: ExerciseFi
     assert not result["passed"], (
         f"The starter code for {where} already passes every check, so there is "
         f"nothing for the learner to do."
+    )
+
+
+@pytest.mark.parametrize(("where", "lesson"), WORKED_EXAMPLES, ids=[w for w, _ in WORKED_EXAMPLES])
+def test_the_worked_example_runs(where: str, lesson: LessonFile):
+    # The first code a learner runs in a lesson. Its plain-Python siblings are
+    # run in real Pyodide by apps/web/tests/content.test.ts.
+    result = _harness({"code": lesson.worked_example_code})
+
+    error = result.get("error") or {}
+    assert result["status"] == "ok", (
+        f"The worked example in {where} stops with {error.get('type')}: {error.get('message')}"
     )

@@ -27,6 +27,18 @@ dev = [
     "mypy>=1.14",
     "types-PyYAML>=6.0",
 ]
+# The libraries Track B's content runs on, for verifying it under CPython
+# (apps/api/tests/test_authored_content_packages.py and friends). Not a runtime
+# dependency of the API — it never executes learner code — so kept out of the
+# production install. Pinned to the versions inside Pyodide 314.0.6 wherever
+# PyPI has them for this Python; scipy 1.18.0 needs Python 3.12, so scipy is one
+# minor behind. See docs/spike-scientific-stack.md §4.
+content = [
+    "numpy==2.4.6",
+    "pandas==3.0.2",
+    "scipy>=1.17,<1.19",
+    "matplotlib==3.10.8",
+]
 
 [build-system]
 requires = ["hatchling"]

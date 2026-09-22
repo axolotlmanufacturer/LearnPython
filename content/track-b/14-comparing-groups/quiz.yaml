@@ -1,0 +1,119 @@
+items:
+  - slug: what-p-means
+    position: 1
+    kind: multiple_choice
+    prompt_markdown: |
+      A comparison gives p = 0.02. What does that number mean?
+    options:
+      - If the feature did not really differ, a difference at least this large would turn up 2% of the time
+      - There is a 2% chance the feature does not really differ
+      - There is a 98% chance the result is real
+      - The effect is small
+    answer: If the feature did not really differ, a difference at least this large would turn up 2% of the time
+    explanation_markdown: >-
+      The order of the "if" is everything. p is computed *assuming* the null
+      hypothesis, so it cannot also tell you how likely that hypothesis is. The
+      second and third options are the same mistake stated two ways — the most
+      common misreading in published research.
+
+  - slug: expected-false-positives
+    position: 2
+    kind: multiple_choice
+    prompt_markdown: |
+      You test 200 features, none of which truly differs, each at p < 0.05. About
+      how many will look significant anyway?
+    options:
+      - About 10
+      - None
+      - About 1
+      - About 100
+    answer: About 10
+    explanation_markdown: >-
+      5% of 200 is 10. That is not a flaw in the test — it is exactly what a
+      p-value threshold of 0.05 means. It is why a list of raw p-values from
+      hundreds of tests cannot be taken at face value.
+
+  - slug: bonferroni-or-bh
+    position: 3
+    kind: multiple_choice
+    prompt_markdown: |
+      What does Benjamini–Hochberg control that Bonferroni does not?
+    options:
+      - The proportion of reported findings that are false, rather than the chance of any false finding at all
+      - The size of the effect
+      - Whether the data is normally distributed
+      - The number of features tested
+    answer: The proportion of reported findings that are false, rather than the chance of any false finding at all
+    explanation_markdown: >-
+      Bonferroni keeps the chance of even one false positive under 5%, which is
+      very strict. Benjamini–Hochberg aims for at most 5% of the reported list to
+      be false — usually the promise a follow-up study actually needs, and it
+      keeps more of the real findings.
+
+  - slug: significant-but-tiny
+    position: 4
+    kind: multiple_choice
+    prompt_markdown: |
+      A study of 50,000 samples finds a difference of 0.02, with p < 0.001. What
+      should you conclude?
+    options:
+      - The difference is probably real and almost certainly too small to matter
+      - The result is highly significant, so the effect is large
+      - The study is flawed
+      - Nothing — the p-value is too small to trust
+    answer: The difference is probably real and almost certainly too small to matter
+    explanation_markdown: >-
+      With enough data, almost any difference becomes detectable. The p-value
+      answers "did we see something"; the effect size answers "was it worth
+      seeing". Report both, always.
+
+  - slug: threshold-is-a-convention
+    position: 5
+    kind: multiple_choice
+    prompt_markdown: |
+      One feature gives p = 0.049 and another p = 0.051. How do they differ as
+      evidence?
+    options:
+      - They are essentially identical
+      - The first is significant and the second is not
+      - The first is twice as strong
+      - The second should be discarded
+    answer: They are essentially identical
+    explanation_markdown: >-
+      0.05 is a convention with no mathematical standing. Treating it as a
+      boundary between true and false is how the same evidence gets reported as
+      a finding in one paper and a non-finding in the next.
+
+  - slug: why-welch
+    position: 6
+    kind: multiple_choice
+    prompt_markdown: |
+      Why pass `equal_var=False` to `ttest_ind`?
+    options:
+      - It drops an assumption that is often false, and costs almost nothing when it is true
+      - It makes the p-value smaller
+      - It is required when the groups differ in size
+      - It speeds up the calculation
+    answer: It drops an assumption that is often false, and costs almost nothing when it is true
+    explanation_markdown: >-
+      The default assumes both conditions have the same underlying spread.
+      Welch's test does not. When the spreads are equal the two agree closely;
+      when they are not, Welch's stays correct.
+
+  - slug: recall-why-normalise
+    position: 7
+    kind: multiple_choice
+    reviews_module_slug: describing-data
+    prompt_markdown: |
+      From Module 13 — why normalise before comparing conditions?
+    options:
+      - A sample that reads high across the board would otherwise make every feature in its condition look higher
+      - To remove the missing values
+      - To make the p-values smaller
+      - Because the t-test requires a median of 0
+    answer: A sample that reads high across the board would otherwise make every feature in its condition look higher
+    explanation_markdown: >-
+      That shift belongs to the sample — the instrument, the afternoon it was
+      processed — not to any feature. Left in, it adds a spurious difference to
+      every comparison; median-centring removes it, provided most features did
+      not really change.

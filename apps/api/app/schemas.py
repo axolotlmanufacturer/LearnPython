@@ -77,6 +77,8 @@ class LessonOut(ORMModel):
     content_markdown: str
     worked_example_code: str | None
     worked_example_note: str | None
+    worked_example_packages: list[str] = Field(default_factory=list)
+    worked_example_stdin: list[str] = Field(default_factory=list)
     exercises: list[ExerciseOut] = Field(default_factory=list)
 
 

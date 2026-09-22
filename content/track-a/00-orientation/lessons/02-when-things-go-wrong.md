@@ -5,6 +5,7 @@ title: When things go wrong
 worked_example_code: |
   print("This line works.")
   print(Hello)
+worked_example_raises: NameError
 worked_example_note: >-
   Run this deliberately broken program. The first line prints; the second stops
   the program. Read what comes back before moving on — this is the shape of

@@ -1,0 +1,39 @@
+slug: predict-the-table-shape
+lesson: a-table-in-python
+position: 1
+title: Predict what pandas reports
+bloom: understand
+scaffold_level: predict
+packages: [pandas]
+prompt_markdown: |
+  This loads the whole dataset for this track.
+
+  Predict the three printed lines before you run it. The feature names are the
+  row labels, not a column — that is what `index_col="feature"` does — so think
+  about what that means for the number of columns.
+starter_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+
+  print(expression.shape)
+  print(expression.columns[0], expression.columns[-1])
+  print(expression.index[0])
+files:
+  expression.csv:
+    from: datasets/expression.csv
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      (200, 12)
+      S01 S12
+      gene_001
+solution_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+
+  print(expression.shape)
+  print(expression.columns[0], expression.columns[-1])
+  print(expression.index[0])

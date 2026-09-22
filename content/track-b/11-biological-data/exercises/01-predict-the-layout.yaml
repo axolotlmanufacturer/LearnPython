@@ -1,0 +1,39 @@
+slug: predict-the-layout
+lesson: features-and-samples
+position: 1
+title: Predict what the first two lines hold
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  `expression.csv` is a small corner of this track's dataset — five features,
+  four samples.
+
+  Before you run it, predict all three printed lines. The last one counts commas
+  in the header, which is a quick way to count the samples: the first column is
+  the feature name, so every comma after it starts a sample.
+starter_code: |
+  with open("expression.csv") as f:
+      header = f.readline().strip()
+      first_row = f.readline().strip()
+
+  print(header)
+  print(first_row)
+  print(header.count(","), "samples")
+files:
+  expression.csv:
+    from: datasets/expression_corner.csv
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      feature,S01,S02,S03,S04
+      gene_001,6.92,7.61,6.30,7.12
+      4 samples
+solution_code: |
+  with open("expression.csv") as f:
+      header = f.readline().strip()
+      first_row = f.readline().strip()
+
+  print(header)
+  print(first_row)
+  print(header.count(","), "samples")

@@ -1,0 +1,73 @@
+slug: fill-in-benjamini-hochberg
+lesson: many-tests-at-once
+position: 2
+title: Finish the Benjamini–Hochberg correction
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  This function works through the p-values from the **largest rank down to the
+  smallest**, which is what lets it carry the running minimum of step 3 along
+  with it.
+
+  Fill in the two blanks: what the p-value at rank `rank` is multiplied by, and
+  what gets stored as its adjusted value.
+
+  The second check uses p-values chosen so that step 3 matters. If it fails and
+  the first passes, look at what you are storing.
+starter_code: |
+  def benjamini_hochberg(pvalues):
+      n = len(pvalues)
+      # Positions of the p-values, smallest p first. order[0] is rank 1.
+      order = sorted(range(n), key=lambda i: pvalues[i])
+
+      adjusted = [0.0] * n
+      running_min = 1.0
+      for rank in range(n, 0, -1):
+          i = order[rank - 1]
+          scaled = pvalues[i] * SCALE_FACTOR
+          running_min = min(running_min, scaled)
+          adjusted[i] = STORED_VALUE
+      return adjusted
+
+
+  print(benjamini_hochberg([0.01, 0.05, 0.3, 0.03]))
+checks:
+  - kind: call
+    label: Adjusts four p-values correctly
+    function: benjamini_hochberg
+    args: [[0.01, 0.05, 0.3, 0.03]]
+    expected: [0.04, 0.06666666666666667, 0.3, 0.06]
+    tolerance: 1.0e-9
+  - kind: call
+    label: Keeps adjusted values in the same order as the raw ones
+    function: benjamini_hochberg
+    args: [[0.01, 0.04, 0.03, 0.2]]
+    expected: [0.04, 0.05333333333333334, 0.05333333333333334, 0.2]
+    tolerance: 1.0e-9
+  - kind: call
+    label: Never adjusts a p-value above 1
+    function: benjamini_hochberg
+    args: [[0.9, 0.95, 0.99]]
+    expected: [0.99, 0.99, 0.99]
+    tolerance: 1.0e-9
+hints:
+  - Step 2 of the lesson multiplies the p-value at rank k by n / k.
+  - The adjusted value is the smallest scaled value seen so far, from the top rank down.
+  - "`n / rank` and `running_min`"
+solution_code: |
+  def benjamini_hochberg(pvalues):
+      n = len(pvalues)
+      # Positions of the p-values, smallest p first. order[0] is rank 1.
+      order = sorted(range(n), key=lambda i: pvalues[i])
+
+      adjusted = [0.0] * n
+      running_min = 1.0
+      for rank in range(n, 0, -1):
+          i = order[rank - 1]
+          scaled = pvalues[i] * n / rank
+          running_min = min(running_min, scaled)
+          adjusted[i] = running_min
+      return adjusted
+
+
+  print(benjamini_hochberg([0.01, 0.05, 0.3, 0.03]))

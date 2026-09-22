@@ -1,0 +1,21 @@
+slug: tabular-data
+track: track-b
+position: 12
+title: Loading and Inspecting a Table
+summary_markdown: >-
+  Getting the measurements into Python and looking at them honestly. First by
+  hand, with nothing but open() and split() — so that when pandas does it in one
+  line, you know what that line is doing. Then pandas itself, and the gaps in
+  the data that every real measurement has.
+
+objectives:
+  - text: Parse a CSV file by hand into lists and a dictionary, including empty cells
+    bloom: apply
+  - text: Load a table with pandas and report its shape, columns and first rows
+    bloom: apply
+  - text: Select a value by label with loc and by position with iloc, and say which you used
+    bloom: apply
+  - text: Explain why measurements go missing and count the gaps
+    bloom: understand
+  - text: Diagnose a KeyError from a mistyped column name
+    bloom: analyze

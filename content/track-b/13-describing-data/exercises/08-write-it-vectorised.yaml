@@ -1,0 +1,58 @@
+slug: write-it-vectorised
+lesson: normalising
+position: 2
+title: Say it in one line, and prove it is the same
+bloom: analyze
+scaffold_level: write_from_spec
+packages: [pandas]
+prompt_markdown: |
+  The loop version is written for you and stored in `by_hand`.
+
+  Write the vectorised version — **no loop** — and store it in `vectorised`.
+  Then print whether the two are identical, using `by_hand.equals(vectorised)`.
+
+  The proof is the point. A one-liner you cannot show agrees with the version you
+  understand is a one-liner you are taking on trust.
+starter_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  kept = expression[expression.mean(axis=1) >= 6.0]
+
+  by_hand = kept.copy()
+  for sample in by_hand.columns:
+      by_hand[sample] = by_hand[sample] - by_hand[sample].median()
+
+  # Your code here.
+files:
+  expression.csv:
+    from: datasets/expression.csv
+checks:
+  - kind: expr
+    label: The vectorised version matches the loop exactly
+    expression: bool(by_hand.equals(vectorised))
+    expected: true
+  - kind: stdout
+    label: Prints the comparison
+    expected: "True"
+  - kind: source
+    label: Builds vectorised without writing a second loop
+    require_text: ["vectorised ="]
+    forbid_text: ["vectorised[sample]"]
+hints:
+  - "`kept.median()` is one number per sample."
+  - Subtracting it from the whole table lines each number up with its column.
+  - "`vectorised = kept - kept.median()`"
+solution_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  kept = expression[expression.mean(axis=1) >= 6.0]
+
+  by_hand = kept.copy()
+  for sample in by_hand.columns:
+      by_hand[sample] = by_hand[sample] - by_hand[sample].median()
+
+  vectorised = kept - kept.median()
+
+  print(by_hand.equals(vectorised))

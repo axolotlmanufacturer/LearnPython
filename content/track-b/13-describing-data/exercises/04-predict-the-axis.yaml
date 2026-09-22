@@ -1,0 +1,38 @@
+slug: predict-the-axis
+lesson: along-an-axis
+position: 1
+title: Predict which way the average goes
+bloom: understand
+scaffold_level: predict
+packages: [pandas]
+prompt_markdown: |
+  Two features, three samples. Predict both printed lines before you run it.
+
+  One of them has three numbers and the other has two. Work out which, and why,
+  before you work out the values.
+starter_code: |
+  import pandas as pd
+
+  expression = pd.DataFrame(
+      {"S01": [1.0, 4.0], "S02": [3.0, 8.0], "S03": [5.0, 6.0]},
+      index=["gene_a", "gene_b"],
+  )
+
+  print(expression.mean(axis=0).tolist())
+  print(expression.mean(axis=1).tolist())
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      [2.5, 5.5, 5.5]
+      [3.0, 6.0]
+solution_code: |
+  import pandas as pd
+
+  expression = pd.DataFrame(
+      {"S01": [1.0, 4.0], "S02": [3.0, 8.0], "S03": [5.0, 6.0]},
+      index=["gene_a", "gene_b"],
+  )
+
+  print(expression.mean(axis=0).tolist())
+  print(expression.mean(axis=1).tolist())

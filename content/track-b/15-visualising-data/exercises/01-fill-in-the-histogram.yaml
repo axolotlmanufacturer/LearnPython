@@ -1,0 +1,58 @@
+slug: fill-in-the-histogram
+lesson: distributions
+position: 1
+title: Draw the shape of one sample
+bloom: apply
+scaffold_level: fill_in
+packages: [pandas, matplotlib]
+prompt_markdown: |
+  Draw a histogram of sample `S01`'s values across the 160 well-measured
+  features, with **10 bins**, and label both axes.
+
+  Fill in the blanks: which column to plot, how many bins, and the two axis
+  labels. Any honest wording for the labels is fine — the checks only ask that
+  they are there.
+starter_code: |
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  kept = expression[expression.mean(axis=1) >= 6.0]
+
+  plt.hist(kept[COLUMN], bins=BIN_COUNT)
+  plt.xlabel(X_LABEL)
+  plt.ylabel(Y_LABEL)
+  plt.title("Sample S01")
+  plt.show()
+files:
+  expression.csv:
+    from: datasets/expression.csv
+checks:
+  - kind: expr
+    label: Draws one histogram
+    expression: len(__plots__)
+    expected: 1
+  - kind: expr
+    label: Uses ten bins
+    expression: __plots__[0]["bars"]
+    expected: 10
+  - kind: expr
+    label: Labels both axes
+    expression: bool(__plots__[0]["xlabel"]) and bool(__plots__[0]["ylabel"])
+    expected: true
+hints:
+  - The column is the sample's name, as a string.
+  - "`bins=10`"
+  - The horizontal axis is the measured level; the vertical axis counts features.
+solution_code: |
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  kept = expression[expression.mean(axis=1) >= 6.0]
+
+  plt.hist(kept["S01"], bins=10)
+  plt.xlabel("normalised level (log2)")
+  plt.ylabel("number of features")
+  plt.title("Sample S01")
+  plt.show()

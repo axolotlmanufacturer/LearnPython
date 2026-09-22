@@ -73,7 +73,10 @@ test.describe("accessibility", () => {
     // A Track B lesson renders tables in its prose, which no Track A page does —
     // and a table is one of the shapes automated rules are actually good at
     // catching (missing headers, cells with no scope).
-    { name: "statistics lesson", path: "/learn/describing-data/summarising-with-pandas" },
+    { name: "statistics lesson", path: "/learn/describing-data/along-an-axis" },
+    // A worked example that takes stdin shows the answers it will be given —
+    // new markup in Phase 8, so scanned like everything else.
+    { name: "lesson with input", path: "/learn/strings/asking-for-input" },
   ];
 
   for (const { name, path } of pages) {

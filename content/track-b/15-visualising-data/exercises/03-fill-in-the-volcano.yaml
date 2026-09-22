@@ -1,0 +1,61 @@
+slug: fill-in-the-volcano
+lesson: the-volcano-plot
+position: 1
+title: Plot every feature's effect against its evidence
+bloom: apply
+scaffold_level: fill_in
+packages: [pandas, numpy, matplotlib]
+prompt_markdown: |
+  `results.csv` holds the Module 14 analysis for all 160 features: `effect`,
+  `p`, and `p_adj`.
+
+  Fill in the blanks to draw the basic volcano plot: effect across, −log10 of the
+  **adjusted** p-value up, and both axes labelled.
+starter_code: |
+  import numpy as np
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  results = pd.read_csv("results.csv", index_col="feature")
+
+  height = -np.log10(results[P_COLUMN])
+
+  plt.scatter(results[EFFECT_COLUMN], height)
+  plt.xlabel(X_LABEL)
+  plt.ylabel(Y_LABEL)
+  plt.title("Volcano plot")
+  plt.show()
+files:
+  results.csv:
+    from: datasets/results.csv
+checks:
+  - kind: expr
+    label: Plots one point per feature
+    expression: __plots__[0]["points"] if __plots__ else 0
+    expected: 160
+  - kind: expr
+    label: Uses the adjusted p-values for height
+    expression: round(float(height.max()), 2)
+    expected: 5.76
+  - kind: expr
+    label: Labels both axes
+    expression: bool(__plots__ and __plots__[0]["xlabel"] and __plots__[0]["ylabel"])
+    expected: true
+hints:
+  - The height uses the p-values that have been corrected for multiple testing.
+  - The column names are `effect`, `p` and `p_adj`.
+  - '`-np.log10(results["p_adj"])` and `results["effect"]`'
+solution_code: |
+  import numpy as np
+  import pandas as pd
+  import matplotlib.pyplot as plt
+
+  results = pd.read_csv("results.csv", index_col="feature")
+
+  height = -np.log10(results["p_adj"])
+
+  plt.scatter(results["effect"], height)
+  plt.xlabel("effect: treated minus control (log2)")
+  plt.ylabel("-log10 adjusted p-value")
+  plt.title("Volcano plot")
+  plt.show()

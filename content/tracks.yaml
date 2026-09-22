@@ -12,8 +12,10 @@ tracks:
     title: Applied Statistics for Biological Data
     prerequisite_slug: track-a
     summary_markdown: >-
-      Use the Python you have learned to analyse real tabular data: loading and
-      cleaning it with pandas, computing statistics by hand and then with the
-      standard tools, comparing groups, correcting for multiple comparisons, and
-      reading the plots you produce. No biology background assumed — the small
-      amount of vocabulary you need is introduced where you need it.
+      Use the Python you have learned to analyse a table of biological
+      measurements: loading and cleaning it, computing statistics by hand and
+      then with pandas and scipy, comparing two conditions across hundreds of
+      features at once, correcting for doing so, and drawing and reading a
+      volcano plot. It ends with a complete analysis you assemble yourself. No
+      biology background assumed — the four words you need are introduced where
+      you need them.

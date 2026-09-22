@@ -1,0 +1,54 @@
+slug: fill-in-sample-variance
+lesson: your-own-statistics
+position: 2
+title: Finish the sample variance
+bloom: apply
+scaffold_level: fill_in
+prompt_markdown: |
+  `mean` is written. Finish `sample_variance` by filling in the two blanks: what
+  each deviation is measured *from*, and what the sum of squares is divided *by*.
+
+  It is the **sample** variance, so think about the lesson's argument for which
+  divisor to use. The checks call your function on lists small enough to work out
+  by hand.
+starter_code: |
+  def mean(values):
+      return sum(values) / len(values)
+
+
+  def sample_variance(values):
+      centre = mean(values)
+      squared = [(value - DEVIATION_FROM) ** 2 for value in values]
+      return sum(squared) / DIVISOR
+
+
+  print(sample_variance([2, 4, 4, 4, 5, 5, 7, 9]))
+checks:
+  - kind: call
+    label: Gives 32 / 7 for the hand-checkable list
+    function: sample_variance
+    args: [[2, 4, 4, 4, 5, 5, 7, 9]]
+    expected: 4.571428571428571
+    tolerance: 1.0e-9
+  - kind: call
+    label: Divides by n − 1, so two values 2 apart have a variance of 2
+    function: sample_variance
+    args: [[1, 3]]
+    expected: 2.0
+    tolerance: 1.0e-9
+hints:
+  - Each deviation is a value's distance from the centre you just computed.
+  - The sample variance divides by one fewer than the number of values.
+  - "`(value - centre)` and `(len(values) - 1)`"
+solution_code: |
+  def mean(values):
+      return sum(values) / len(values)
+
+
+  def sample_variance(values):
+      centre = mean(values)
+      squared = [(value - centre) ** 2 for value in values]
+      return sum(squared) / (len(values) - 1)
+
+
+  print(sample_variance([2, 4, 4, 4, 5, 5, 7, 9]))

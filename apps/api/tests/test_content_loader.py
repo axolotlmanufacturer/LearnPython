@@ -377,3 +377,50 @@ def test_real_booleans_are_still_booleans(tmp_path):
     curriculum = load_curriculum(tmp_path)
 
     assert curriculum.modules[0].lessons[0].exercises[0].checks[0].expected is True
+
+
+# ------------------------------------------------------- shared data files
+
+
+def _exercise_with_files(tmp_path, files: dict) -> None:
+    import yaml
+
+    write_tracks(tmp_path)
+    module_dir = write_module(tmp_path)
+    write_lesson(module_dir)
+    write_exercise(module_dir)
+    path = module_dir / "exercises" / "01-say-hello.yaml"
+    data = yaml.safe_load(path.read_text())
+    data["files"] = files
+    path.write_text(yaml.safe_dump(data))
+
+
+def test_a_file_can_refer_to_a_shared_dataset(tmp_path):
+    # Track B's exercises share one synthetic matrix. The reference is inlined
+    # at load time, so everything downstream still sees plain file contents.
+    (tmp_path / "datasets").mkdir()
+    (tmp_path / "datasets" / "numbers.csv").write_text("a,b\n1,2\n")
+    _exercise_with_files(tmp_path, {"numbers.csv": {"from": "datasets/numbers.csv"}})
+
+    exercise = load_curriculum(tmp_path).modules[0].lessons[0].exercises[0]
+
+    assert exercise.files == {"numbers.csv": "a,b\n1,2\n"}
+
+
+def test_a_reference_to_a_missing_file_is_an_error(tmp_path):
+    _exercise_with_files(tmp_path, {"numbers.csv": {"from": "datasets/nope.csv"}})
+
+    with pytest.raises(ContentError, match="does not exist"):
+        load_curriculum(tmp_path)
+
+
+def test_a_reference_may_not_escape_the_content_directory(tmp_path):
+    # Content is reviewed as data; a path that reaches outside it would let an
+    # exercise ship an arbitrary file from the build machine to every learner.
+    content = tmp_path / "content"
+    content.mkdir()
+    (tmp_path / "secret.txt").write_text("not for learners")
+    _exercise_with_files(content, {"leak.txt": {"from": "../secret.txt"}})
+
+    with pytest.raises(ContentError, match="outside content"):
+        load_curriculum(content)

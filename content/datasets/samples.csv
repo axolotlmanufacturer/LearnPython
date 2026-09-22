@@ -1,0 +1,13 @@
+sample_id,condition,replicate
+S01,treated,1
+S02,control,1
+S03,control,2
+S04,treated,2
+S05,treated,3
+S06,control,3
+S07,control,4
+S08,treated,4
+S09,control,5
+S10,treated,5
+S11,control,6
+S12,treated,6

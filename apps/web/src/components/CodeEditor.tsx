@@ -29,9 +29,49 @@
 
 import { indentWithTab } from "@codemirror/commands";
 import { python } from "@codemirror/lang-python";
+import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { EditorView, keymap } from "@codemirror/view";
+import { tags as t } from "@lezer/highlight";
 import CodeMirror from "@uiw/react-codemirror";
 import { useId, useMemo } from "react";
+
+/**
+ * Syntax colours that meet WCAG AA (4.5:1) on the editor's background.
+ *
+ * CodeMirror's default palette mostly does, but three of its colours do not,
+ * and one of them is everywhere in this curriculum: f-string text is `#e40`, at
+ * about 3.6:1 on the active line. Every lesson from Module 2 onward uses
+ * f-strings, so every one has shipped code a low-vision learner could not
+ * comfortably read — the accessibility audit only found it when it first
+ * scanned a page containing one.
+ *
+ * So this is CodeMirror's default style, tag for tag, with exactly those three
+ * darkened just enough to pass: special strings and escapes, type and namespace
+ * names, and invalid tokens. Every other colour is unchanged, so the editor
+ * looks the same to anyone who could already read it. The ratios, measured on
+ * white and on the tinted active line, are in docs/accessibility.md.
+ */
+const readableHighlighting = HighlightStyle.define([
+  { tag: t.meta, color: "#404740" },
+  { tag: t.link, textDecoration: "underline" },
+  { tag: t.heading, textDecoration: "underline", fontWeight: "bold" },
+  { tag: t.emphasis, fontStyle: "italic" },
+  { tag: t.strong, fontWeight: "bold" },
+  { tag: t.strikethrough, textDecoration: "line-through" },
+  { tag: t.keyword, color: "#708" },
+  { tag: [t.atom, t.bool, t.url, t.contentSeparator, t.labelName], color: "#219" },
+  { tag: [t.literal, t.inserted], color: "#164" },
+  { tag: [t.string, t.deleted], color: "#a11" },
+  { tag: [t.regexp, t.escape, t.special(t.string)], color: "#b43c00" }, // was #e40
+  { tag: t.definition(t.variableName), color: "#00f" },
+  { tag: t.local(t.variableName), color: "#30a" },
+  { tag: [t.typeName, t.namespace], color: "#067047" }, // was #085
+  { tag: t.className, color: "#167" },
+  { tag: [t.special(t.variableName), t.macroName], color: "#256" },
+  { tag: t.definition(t.propertyName), color: "#00c" },
+  { tag: t.comment, color: "#940" },
+  { tag: t.invalid, color: "#c00000" }, // was #f00
+]);
 
 const theme = EditorView.theme({
   "&": { fontSize: "14px", backgroundColor: "var(--color-paper)" },
@@ -64,6 +104,9 @@ export function CodeEditor({
   const extensions = useMemo(
     () => [
       python(),
+      // Not a fallback: registering a full style here means CodeMirror's
+      // default palette, with its three sub-AA colours, is never used.
+      syntaxHighlighting(readableHighlighting),
       keymap.of([indentWithTab]),
       // Attributes land on `.cm-content`, the element with role="textbox" —
       // see the note at the top of this file.

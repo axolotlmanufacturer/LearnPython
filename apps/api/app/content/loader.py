@@ -113,9 +113,53 @@ def load_lesson(path: Path) -> LessonFile:
         raise _fail(path, exc) from exc
 
 
+def _content_root(path: Path) -> Path:
+    """The `content/` directory containing `path` — the one with tracks.yaml."""
+    for parent in path.parents:
+        if (parent / "tracks.yaml").exists():
+            return parent
+    raise ContentError(f"{path}: not inside a content directory (no tracks.yaml above it)")
+
+
+def _resolve_files(files: dict[str, Any], exercise_path: Path) -> dict[str, str]:
+    """Inline shared data files referenced as `{from: datasets/expression.csv}`.
+
+    Track B's exercises work on one synthetic dataset (content/datasets/). Pasting
+    a 13 KB matrix into each of a dozen exercises would mean a dozen copies that
+    silently disagree the first time the generator is re-run; a reference keeps
+    one source of truth. Resolution happens here, at load time, so the database,
+    the API and the browser all still see plain file contents and nothing
+    downstream needs to know references exist.
+
+    Paths are relative to the content root and may not escape it.
+    """
+    root = _content_root(exercise_path)
+    resolved: dict[str, str] = {}
+    for name, value in files.items():
+        if not isinstance(value, dict):
+            resolved[name] = value
+            continue
+        reference = value.get("from")
+        if not isinstance(reference, str) or set(value) != {"from"}:
+            raise ContentError(
+                f"{exercise_path}: file '{name}' must be text or {{from: <path>}}, got {value!r}"
+            )
+        source = (root / reference).resolve()
+        if root.resolve() not in source.parents:
+            raise ContentError(f"{exercise_path}: file '{name}' points outside content/")
+        if not source.is_file():
+            raise ContentError(
+                f"{exercise_path}: file '{name}' refers to {reference}, which does not exist"
+            )
+        resolved[name] = source.read_text(encoding="utf-8")
+    return resolved
+
+
 def load_exercise(path: Path) -> ExerciseFile:
     data = _read_yaml(path)
     data.setdefault("slug", path.stem.split("-", 1)[-1])
+    if isinstance(data.get("files"), dict):
+        data["files"] = _resolve_files(data["files"], path)
     try:
         return ExerciseFile.model_validate(data)
     except ValidationError as exc:

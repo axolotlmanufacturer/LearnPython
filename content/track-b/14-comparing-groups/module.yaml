@@ -1,0 +1,24 @@
+slug: comparing-groups
+track: track-b
+position: 14
+title: Is the Difference Real — and Across Hundreds of Features?
+summary_markdown: >-
+  A feature's average differs between conditions. Could that have happened by
+  chance alone? You will answer it first by shuffling the data yourself, then
+  with the t-test that does the same job with a formula, and confirm the two
+  agree. Then the problem that defines this kind of analysis: ask that question
+  of 160 features at once, and chance starts producing answers of its own.
+
+objectives:
+  - text: State the null hypothesis for a feature, and what a p-value does and does not mean
+    bloom: understand
+  - text: Estimate a p-value by shuffling condition labels
+    bloom: apply
+  - text: Run a two-sample t-test with scipy and confirm it agrees with the shuffle
+    bloom: apply
+  - text: Explain why testing many features at once produces false positives
+    bloom: understand
+  - text: Implement Bonferroni and Benjamini–Hochberg corrections by hand
+    bloom: apply
+  - text: Judge whether a reported result supports the claim made from it
+    bloom: evaluate

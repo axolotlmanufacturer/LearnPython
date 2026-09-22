@@ -1,0 +1,21 @@
+slug: differential-analysis
+track: track-b
+position: 16
+title: "Capstone: A Differential Analysis, End to End"
+summary_markdown: >-
+  Everything in the track, assembled by you into one pipeline: load, inspect,
+  filter, normalise, compare every feature with a statistic you wrote yourself,
+  correct for testing them all, find what changed, draw it, and say what it
+  means. Graded against the features that were actually shifted when the data
+  was made — not just "did it run" — and a short written interpretation judged
+  against a rubric.
+
+objectives:
+  - text: Assemble a complete differential-analysis pipeline from load to results table without step-by-step guidance
+    bloom: create
+  - text: Implement Welch's t statistic and confirm it against scipy
+    bloom: apply
+  - text: Recover the dataset's truly changed features within a stated tolerance
+    bloom: evaluate
+  - text: Communicate a result in plain language, with its effect sizes and its limits
+    bloom: create

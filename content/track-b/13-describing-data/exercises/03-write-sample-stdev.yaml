@@ -1,0 +1,81 @@
+slug: write-sample-stdev
+lesson: your-own-statistics
+position: 3
+title: Write the standard deviation, and check it against the library
+bloom: apply
+scaffold_level: write_from_spec
+prompt_markdown: |
+  `mean` and `sample_variance` are written for you. Write a function
+  `sample_stdev(values)` that returns the sample standard deviation, built on
+  `sample_variance`.
+
+  Then write a second function, `summarise(values)`, that returns a pair: the mean
+  and the sample standard deviation, each **rounded to two decimal places**.
+
+  Finally, check yourself: Python's own `statistics.stdev` computes the same thing.
+  Print both for `gene_004`'s six control values and confirm they agree — that
+  comparison is the habit this module is trying to build.
+starter_code: |
+  import statistics
+
+
+  def mean(values):
+      return sum(values) / len(values)
+
+
+  def sample_variance(values):
+      centre = mean(values)
+      return sum((value - centre) ** 2 for value in values) / (len(values) - 1)
+
+
+  control = [10.02, 9.41, 9.98, 9.76, 10.01, 9.17]
+
+  # Your code here.
+checks:
+  - kind: call
+    label: sample_stdev gives about 2.138 for the hand-checkable list
+    function: sample_stdev
+    args: [[2, 4, 4, 4, 5, 5, 7, 9]]
+    expected: 2.138089935299395
+    tolerance: 1.0e-9
+  - kind: call
+    label: sample_stdev agrees with the library on gene_004's controls
+    function: sample_stdev
+    args: [[10.02, 9.41, 9.98, 9.76, 10.01, 9.17]]
+    expected: 0.35825968235345707
+    tolerance: 1.0e-9
+  - kind: call
+    label: summarise returns the mean and spread, rounded to two places
+    function: summarise
+    args: [[10.02, 9.41, 9.98, 9.76, 10.01, 9.17]]
+    expected: [9.72, 0.36]
+hints:
+  - The standard deviation is the square root of the variance — `** 0.5`.
+  - "`summarise` can call your other two functions and return `(a, b)`."
+  - "`return round(mean(values), 2), round(sample_stdev(values), 2)`"
+solution_code: |
+  import statistics
+
+
+  def mean(values):
+      return sum(values) / len(values)
+
+
+  def sample_variance(values):
+      centre = mean(values)
+      return sum((value - centre) ** 2 for value in values) / (len(values) - 1)
+
+
+  def sample_stdev(values):
+      return sample_variance(values) ** 0.5
+
+
+  def summarise(values):
+      return round(mean(values), 2), round(sample_stdev(values), 2)
+
+
+  control = [10.02, 9.41, 9.98, 9.76, 10.01, 9.17]
+
+  print(sample_stdev(control))
+  print(statistics.stdev(control))
+  print(summarise(control))

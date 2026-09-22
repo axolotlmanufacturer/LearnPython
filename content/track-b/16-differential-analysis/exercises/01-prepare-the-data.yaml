@@ -1,0 +1,80 @@
+slug: prepare-the-data
+lesson: the-pipeline
+position: 1
+title: Load, inspect, filter and normalise
+bloom: create
+scaffold_level: open_ended
+packages: [pandas]
+prompt_markdown: |
+  Stage one of the pipeline, on the full dataset.
+
+  Load `expression.csv` (features as rows) and `samples.csv`, look at them, and
+  produce a table called `normalised`: the features with a mean of at least 6.0,
+  each sample median-centred.
+
+  Print a short report of what you did — at the least, how many gaps there were
+  and how many features you kept. How you word it is up to you.
+
+  Put each stage in its own function. You will be extending this code in the next
+  two exercises.
+starter_code: |
+  import pandas as pd
+
+  # Your pipeline, stage one.
+files:
+  expression.csv:
+    from: datasets/expression.csv
+  samples.csv:
+    from: datasets/samples.csv
+checks:
+  - kind: expr
+    label: Keeps the 160 features with a mean of at least 6.0, across all 12 samples
+    expression: list(normalised.shape)
+    expected: [160, 12]
+  - kind: expr
+    label: Leaves no gaps in what is kept
+    expression: int(normalised.isna().sum().sum())
+    expected: 0
+  - kind: expr
+    label: Centres every sample on its median
+    expression: float(normalised.median().abs().max())
+    expected: 0.0
+    tolerance: 1.0e-9
+  - kind: stdout
+    label: Reports how many features were kept
+    match: contains
+    expected: "160"
+rubric:
+  - Does your report say how many features were dropped, and why they were dropped?
+  - Would someone reading only your output know what was done to the data before any comparison?
+  - Is each stage its own function, with a name that says what it does?
+  - Did you check that no gaps remain, rather than assume it?
+solution_code: |
+  import pandas as pd
+
+
+  def load():
+      expression = pd.read_csv("expression.csv", index_col="feature")
+      samples = pd.read_csv("samples.csv")
+      return expression, samples
+
+
+  def keep_measurable(expression, threshold=6.0):
+      return expression[expression.mean(axis=1) >= threshold]
+
+
+  def normalise(table):
+      return table - table.median()
+
+
+  expression, samples = load()
+  print(f"Loaded {expression.shape[0]} features x {expression.shape[1]} samples.")
+  print(f"{int(expression.isna().sum().sum())} values were below the detection limit.")
+
+  kept = keep_measurable(expression)
+  print(f"Kept {len(kept)} features with a mean of at least 6.0; "
+        f"dropped {len(expression) - len(kept)} too faint to compare.")
+  print(f"Gaps remaining: {int(kept.isna().sum().sum())}")
+
+  normalised = normalise(kept)
+  print("Each sample centred on its median.")

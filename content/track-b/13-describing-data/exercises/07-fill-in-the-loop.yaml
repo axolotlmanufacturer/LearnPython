@@ -1,0 +1,56 @@
+slug: fill-in-the-loop
+lesson: normalising
+position: 1
+title: Normalise one sample at a time
+bloom: apply
+scaffold_level: fill_in
+packages: [pandas]
+prompt_markdown: |
+  The low-signal features have already been dropped. Finish the loop so that
+  each sample has its own median subtracted from every value in it.
+
+  Fill in the two blanks. Afterwards every sample's median should be 0 — the
+  program prints them so you can see it.
+starter_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  kept = expression[expression.mean(axis=1) >= 6.0]
+
+  normalised = kept.copy()
+  for sample in normalised.columns:
+      normalised[sample] = normalised[sample] - SUBTRACT_WHAT
+
+  print(COLUMN_MEDIANS.round(2).tolist())
+files:
+  expression.csv:
+    from: datasets/expression.csv
+checks:
+  - kind: expr
+    label: Every sample's median is now 0
+    expression: float(normalised.median().abs().max())
+    expected: 0.0
+    tolerance: 1.0e-9
+  - kind: expr
+    label: Differences within a sample are left alone
+    expression: >-
+      round(float(normalised.loc["gene_003", "S01"] - normalised.loc["gene_001", "S01"]), 2)
+    expected: 4.97
+  - kind: source
+    label: Does it one sample at a time, with a loop
+    require_ast: [For]
+hints:
+  - Inside the loop, `normalised[sample]` is one sample's column. What is its median?
+  - "`normalised[sample].median()`"
+  - The medians of the whole table after the loop are `normalised.median()`.
+solution_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  kept = expression[expression.mean(axis=1) >= 6.0]
+
+  normalised = kept.copy()
+  for sample in normalised.columns:
+      normalised[sample] = normalised[sample] - normalised[sample].median()
+
+  print(normalised.median().round(2).tolist())

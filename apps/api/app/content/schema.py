@@ -160,9 +160,29 @@ ALLOWED_PACKAGES = {
     # directly should say so rather than relying on that.
     "numpy",
     # Statistical tests. Deliberately not introduced until a learner has
-    # computed the same thing by hand (Module 13).
+    # computed the same thing by hand (Module 14).
     "scipy",
+    # Plotting, Modules 15-16. The largest marginal cost in the track: eight
+    # extra wheels (fonts, image handling, geometry) over pandas + scipy. It is
+    # here because §5A makes producing and *reading* a volcano plot part of the
+    # track's success criterion, and there is no smaller way to draw one.
+    # seaborn, which the brief also names, is deliberately absent: it is not in
+    # the Pyodide distribution, so it would mean micropip and a PyPI origin in
+    # the CSP — and nothing Track B plots needs it. See
+    # docs/spike-scientific-stack.md §7.
+    "matplotlib",
 }
+
+
+def _check_packages(packages: list[str]) -> list[str]:
+    unknown = sorted(set(packages) - ALLOWED_PACKAGES)
+    if unknown:
+        raise ValueError(
+            f"{', '.join(unknown)} not in ALLOWED_PACKAGES. Adding one is a bandwidth "
+            f"decision — see the note on that list in content/schema.py. "
+            f"Currently allowed: {', '.join(sorted(ALLOWED_PACKAGES))}"
+        )
+    return packages
 
 
 class ExerciseFile(StrictModel):
@@ -197,14 +217,7 @@ class ExerciseFile(StrictModel):
     @field_validator("packages")
     @classmethod
     def packages_are_allowed(cls, packages: list[str]) -> list[str]:
-        unknown = sorted(set(packages) - ALLOWED_PACKAGES)
-        if unknown:
-            raise ValueError(
-                f"{', '.join(unknown)} not in ALLOWED_PACKAGES. Adding one is a bandwidth "
-                f"decision — see the note on that list in content/schema.py. "
-                f"Currently allowed: {', '.join(sorted(ALLOWED_PACKAGES))}"
-            )
-        return packages
+        return _check_packages(packages)
 
     @field_validator("hints")
     @classmethod
@@ -223,7 +236,26 @@ class LessonFile(StrictModel):
     # independent practice.
     worked_example_code: str | None = None
     worked_example_note: str | None = None
+    # Packages the worked example imports. Exercises declare theirs; the worked
+    # example needs the same, or a Track B lesson opens with an example that
+    # stops at `import pandas` — which is what happened before this field
+    # existed, unnoticed because nothing ran worked examples in CI.
+    worked_example_packages: list[str] = Field(default_factory=list)
+    # Answers fed to input() when the worked example runs, exactly as for an
+    # exercise. A worked example about input() cannot run without them — the
+    # Module 2 example stopped with an EOFError for every learner until the
+    # worked-example tests were written and caught it.
+    worked_example_stdin: list[str] = Field(default_factory=list)
+    # The exception a worked example raises *on purpose*, for lessons about
+    # reading errors. Content-only: the tests assert the example fails exactly
+    # this way, so a deliberate error cannot quietly become an accidental one.
+    worked_example_raises: str | None = None
     exercises: list[ExerciseFile] = Field(default_factory=list)
+
+    @field_validator("worked_example_packages")
+    @classmethod
+    def worked_example_packages_are_allowed(cls, packages: list[str]) -> list[str]:
+        return _check_packages(packages)
 
 
 class QuizItemFile(StrictModel):

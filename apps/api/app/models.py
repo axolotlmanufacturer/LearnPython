@@ -156,6 +156,14 @@ class Lesson(Base):
     content_markdown: Mapped[str] = mapped_column(Text, nullable=False, default="")
     worked_example_code: Mapped[str | None] = mapped_column(Text, nullable=True)
     worked_example_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Pyodide packages the worked example needs; see LessonFile in content/schema.py.
+    worked_example_packages: Mapped[list[str]] = mapped_column(
+        JsonType, nullable=False, default=list, server_default=text("'[]'")
+    )
+    # Answers fed to input() when the worked example runs.
+    worked_example_stdin: Mapped[list[str]] = mapped_column(
+        JsonType, nullable=False, default=list, server_default=text("'[]'")
+    )
     content_hash: Mapped[str] = mapped_column(String(64), nullable=False, default="")
 
     module: Mapped[Module] = relationship(back_populates="lessons")

@@ -6,6 +6,11 @@ worked_example_code: |
   import csv
   import json
 
+  with open("readings.csv", "w") as f:
+      f.write("city,celsius\n")
+      f.write("Oslo,-3\n")
+      f.write("Cairo,35\n")
+
   with open("readings.csv") as f:
       rows = list(csv.DictReader(f))
 

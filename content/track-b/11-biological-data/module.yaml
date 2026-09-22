@@ -1,0 +1,21 @@
+slug: biological-data
+track: track-b
+position: 11
+title: Features, Samples, and Why Measurements Vary
+summary_markdown: >-
+  The small amount of biology the rest of this track needs, and no more. What is
+  being measured, what it is being measured in, how the measurements are laid out
+  as a table — and the one idea every later module depends on: the same thing,
+  measured twice, never gives the same number.
+
+objectives:
+  - text: Say what a feature, a sample, a condition and a replicate are
+    bloom: remember
+  - text: Describe the rows-are-features, columns-are-samples layout and the separate sample table
+    bloom: understand
+  - text: Explain why a sample's condition belongs in a metadata table rather than in its name
+    bloom: understand
+  - text: Explain why two replicates of the same feature differ, and why that matters
+    bloom: understand
+  - text: Read what a value on a log2 scale means
+    bloom: understand

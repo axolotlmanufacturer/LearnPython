@@ -1,0 +1,70 @@
+items:
+  - slug: why-a-tolerance
+    position: 1
+    kind: multiple_choice
+    prompt_markdown: |
+      The capstone accepts a pipeline that finds 18 of the 20 shifted features
+      with up to 2 false ones. Why not demand exactly 20 and 0?
+    options:
+      - Reasonable choices — Welch or Student, Bonferroni or BH — move the answer slightly, and none of them is wrong
+      - Because the grader is inaccurate
+      - To make the capstone easier
+      - Because the ground truth is uncertain
+    answer: Reasonable choices — Welch or Student, Bonferroni or BH — move the answer slightly, and none of them is wrong
+    explanation_markdown: >-
+      A tolerance that only one exact method can meet is grading the method, not
+      the analysis. This one is chosen so defensible variations pass and the two
+      mistakes the track is about — no multiple-testing correction, and
+      conditions read off column order — do not.
+
+  - slug: own-statistic
+    position: 2
+    kind: multiple_choice
+    prompt_markdown: |
+      Why compute the t statistic yourself when scipy can?
+    options:
+      - So the library's number is one you can check, not one you have to trust
+      - Because scipy's is often wrong
+      - Because scipy is too slow for 160 features
+      - It is required by scipy's licence
+    answer: So the library's number is one you can check, not one you have to trust
+    explanation_markdown: >-
+      When your formula and scipy's agree to the ninth decimal place, you know
+      what scipy is doing and that you called it correctly. When they disagree,
+      one of you is wrong — and finding out which is where understanding comes
+      from.
+
+  - slug: what-it-cannot-say
+    position: 3
+    kind: multiple_choice
+    prompt_markdown: |
+      Twenty genes changed in the treated samples. Which of these can the
+      analysis **not** tell you?
+    options:
+      - Whether the changes matter for what the cells actually do
+      - Which genes changed
+      - Which direction each one moved
+      - Roughly how much each one moved
+    answer: Whether the changes matter for what the cells actually do
+    explanation_markdown: >-
+      Statistics can say that a difference is unlikely to be chance and how big
+      it is. Whether a threefold change in a particular gene matters is a
+      biological question, and saying so plainly is part of reporting honestly.
+
+  - slug: recall-wrong-columns
+    position: 4
+    kind: multiple_choice
+    reviews_module_slug: biological-data
+    prompt_markdown: |
+      From Module 11 — a pipeline treats the first six columns as the controls.
+      What happens on this dataset?
+    options:
+      - Every comparison is wrong, with no error message, because the conditions are interleaved
+      - pandas raises an error
+      - The results are identical, since the samples are all similar
+      - Only the p-values change, not the effects
+    answer: Every comparison is wrong, with no error message, because the conditions are interleaved
+    explanation_markdown: >-
+      S01 is treated and S02 is control. A pipeline that assumes the order runs
+      perfectly and compares mixed groups. It is one of the two mistakes the
+      capstone's tolerance is built to reject.

@@ -21,6 +21,7 @@ import { CodeEditor } from "@/components/CodeEditor";
 import { FeedbackPanel } from "@/components/FeedbackPanel";
 import { OutputPane } from "@/components/OutputPane";
 import { usePythonRunner } from "@/components/PythonRunnerProvider";
+import { useHydrated } from "@/lib/useHydrated";
 import { RubricChecklist } from "@/components/RubricChecklist";
 import { Markdown } from "@/components/Markdown";
 import { SCAFFOLD_LABELS, type ApiExercise } from "@/lib/api";
@@ -107,6 +108,9 @@ export function ExerciseCard({
 
   const busy =
     running || state === "loading" || state === "restarting" || state === "loading-packages";
+  // Until React has attached the click handler, a press would be swallowed
+  // silently; see lib/useHydrated.ts.
+  const hydrated = useHydrated();
   const hintsLeft = exercise.hints.length - hintsShown;
 
   return (
@@ -163,7 +167,7 @@ export function ExerciseCard({
             <button
               type="button"
               onClick={handleRun}
-              disabled={busy}
+              disabled={busy || !hydrated}
               className="rounded bg-brand px-5 py-2 font-medium text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
             >
               {busy ? "Running…" : "Run"}
@@ -183,6 +187,7 @@ export function ExerciseCard({
           runnerState={state}
           hasRun={result !== null}
           truncated={result?.truncated ?? false}
+          figures={result?.figures ?? []}
         />
       </div>
 

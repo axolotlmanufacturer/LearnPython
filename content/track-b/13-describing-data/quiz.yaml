@@ -1,0 +1,103 @@
+items:
+  - slug: mean-and-median-apart
+    position: 1
+    kind: multiple_choice
+    prompt_markdown: |
+      A feature's mean is 20 and its median is 3. What should you do?
+    options:
+      - Look at its largest values — something is pulling on the tail, and it is either an error or the interesting part
+      - Report the mean, since it uses every value
+      - Report the median, since it ignores outliers
+      - Average the two
+    answer: Look at its largest values — something is pulling on the tail, and it is either an error or the interesting part
+    explanation_markdown: >-
+      A large gap between mean and median is a signal, not a choice between two
+      numbers. Either a value is wrong — a slipped decimal point, a wrong unit —
+      or it is real and probably the most interesting thing in the data.
+
+  - slug: why-n-minus-one
+    position: 2
+    kind: multiple_choice
+    prompt_markdown: |
+      Why does the **sample** variance divide by n − 1 rather than n?
+    options:
+      - Deviations measured from the sample's own mean come out slightly small, and n − 1 corrects for that
+      - To avoid dividing by zero
+      - Because one value is always an outlier
+      - It is a historical convention with no reason behind it
+    answer: Deviations measured from the sample's own mean come out slightly small, and n − 1 corrects for that
+    explanation_markdown: >-
+      The sample's mean is, by construction, the point closest to those values,
+      so deviations from it underestimate deviations from the true, unknown
+      mean. With six replicates the correction is not small: 2.138 against 2.0
+      for the lesson's hand-checkable list.
+
+  - slug: why-square-deviations
+    position: 3
+    kind: multiple_choice
+    prompt_markdown: |
+      Why are the deviations squared before they are added up?
+    options:
+      - Otherwise the ones above and below the mean cancel out to zero
+      - To make the number larger
+      - Because square roots are easier to compute
+      - To remove missing values
+    answer: Otherwise the ones above and below the mean cancel out to zero
+    explanation_markdown: >-
+      Deviations from the mean always sum to exactly zero — that is what the mean
+      is. Squaring makes each one count as a distance, and the square root at the
+      end puts the answer back in the original units.
+
+  - slug: normalisation-assumes
+    position: 4
+    kind: multiple_choice
+    prompt_markdown: |
+      Median-centring each sample assumes something about the experiment. What?
+    options:
+      - Most features did not change, and those that did are roughly balanced up and down
+      - Every feature changed by the same amount
+      - The data has no missing values
+      - The treated samples were measured first
+    answer: Most features did not change, and those that did are roughly balanced up and down
+    explanation_markdown: >-
+      If a treatment really raised most features, the treated medians are higher
+      for biological reasons, and centring erases the effect. If the real changes
+      are lopsided, they drag the medians and plant a false difference in every
+      unchanged feature. Normalisation is a modelling choice; say which you made.
+
+  - slug: recall-axis-for-features
+    position: 5
+    kind: multiple_choice
+    reviews_module_slug: tabular-data
+    prompt_markdown: |
+      From Module 12 — with features as rows, which call gives one mean per
+      feature?
+    options:
+      - "`expression.mean(axis=1)`"
+      - "`expression.mean(axis=0)`"
+      - "`expression.mean()`"
+      - '`expression.mean(axis="feature")`'
+    answer: "`expression.mean(axis=1)`"
+    explanation_markdown: >-
+      `axis=1` works across each row. The default, `axis=0`, works down each
+      column and gives one answer per sample — twelve numbers where you wanted
+      two hundred, with no error to tell you.
+
+  - slug: recall-list-comprehension
+    position: 6
+    kind: predict_output
+    reviews_module_slug: collections
+    prompt_markdown: What does this print?
+    code: |
+      values = [1, 2, 3]
+      centre = sum(values) / len(values)
+      print([round((v - centre) ** 2, 1) for v in values])
+    options:
+      - "`[1.0, 0.0, 1.0]`"
+      - "`[-1.0, 0.0, 1.0]`"
+      - "`[1, 4, 9]`"
+      - "`[0.0, 1.0, 2.0]`"
+    answer: "`[1.0, 0.0, 1.0]`"
+    explanation_markdown: >-
+      The mean is 2, so the deviations are −1, 0 and 1, and squaring makes the
+      first positive — which is exactly why variance squares them.

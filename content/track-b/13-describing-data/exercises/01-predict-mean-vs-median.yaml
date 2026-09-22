@@ -1,0 +1,35 @@
+slug: predict-mean-vs-median
+lesson: your-own-statistics
+position: 1
+title: Predict which one the outlier moves
+bloom: understand
+scaffold_level: predict
+prompt_markdown: |
+  No libraries here — this is plain Python, so you can see every step.
+
+  Work out all four printed numbers before you run it. Pay attention to what
+  changes between the two lists and what does not.
+starter_code: |
+  small = [2, 3, 3, 4, 8]
+  large = [2, 3, 3, 4, 88]
+
+  print(sum(small) / len(small))
+  print(sorted(small)[len(small) // 2])
+  print(sum(large) / len(large))
+  print(sorted(large)[len(large) // 2])
+checks:
+  - kind: stdout
+    label: The program runs unchanged
+    expected: |
+      4.0
+      3
+      20.0
+      3
+solution_code: |
+  small = [2, 3, 3, 4, 8]
+  large = [2, 3, 3, 4, 88]
+
+  print(sum(small) / len(small))
+  print(sorted(small)[len(small) // 2])
+  print(sum(large) / len(large))
+  print(sorted(large)[len(large) // 2])

@@ -155,6 +155,17 @@ export interface ExecutionResult {
   /** Output was cut off for exceeding the size limit. */
   truncated: boolean;
   durationMs: number;
+  /** Plots the program drew, rendered to PNG by the harness (Track B). Empty
+   * unless the learner imported matplotlib. */
+  figures: Figure[];
+}
+
+export interface Figure {
+  /** Base64-encoded PNG, no data-URL prefix. */
+  png: string;
+  /** Generated from what was actually drawn — title, axis labels, how many
+   * points — so the image has a text equivalent (WCAG 1.1.1). */
+  alt: string;
 }
 
 export type RunnerState =
@@ -194,5 +205,6 @@ export function engineFailure(
     passed: false,
     truncated: false,
     durationMs: 0,
+    figures: [],
   };
 }

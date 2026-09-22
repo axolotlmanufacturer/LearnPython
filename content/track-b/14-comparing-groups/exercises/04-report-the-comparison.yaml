@@ -1,0 +1,70 @@
+slug: report-the-comparison
+lesson: the-t-test
+position: 2
+title: Report a comparison a reader can weigh
+bloom: apply
+scaffold_level: write_from_spec
+packages: [pandas, scipy]
+prompt_markdown: |
+  The data is loaded, filtered and normalised exactly as in Module 13. Compare
+  `gene_034` between the conditions with Welch's t-test, and print exactly two
+  lines:
+
+  ```
+  gene_034: treated - control = 0.66
+  p = 0.0302
+  ```
+
+  The difference to two decimal places, the p-value to four. (The lesson's
+  worked example printed 0.0301 because its lists were rounded to two decimals
+  for display; here you are using the full values.)
+
+  Note what is being asked for: the effect **and** the p-value. "The difference
+  was significant" is not a reportable result.
+starter_code: |
+  import pandas as pd
+  from scipy import stats
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  samples = pd.read_csv("samples.csv")
+
+  kept = expression[expression.mean(axis=1) >= 6.0]
+  normalised = kept - kept.median()
+
+  # Your code here.
+files:
+  expression.csv:
+    from: datasets/expression.csv
+  samples.csv:
+    from: datasets/samples.csv
+checks:
+  - kind: stdout
+    label: Reports the difference in means and the p-value for gene_034
+    expected: |
+      gene_034: treated - control = 0.66
+      p = 0.0302
+hints:
+  - Find the control and treated sample names from the sample table, as in Module 13.
+  - '`normalised.loc["gene_034", treated]` is that feature''s six treated values.'
+  - '`stats.ttest_ind(a, b, equal_var=False).pvalue`, formatted with `f"{p:.4f}"`.'
+solution_code: |
+  import pandas as pd
+  from scipy import stats
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+  samples = pd.read_csv("samples.csv")
+
+  kept = expression[expression.mean(axis=1) >= 6.0]
+  normalised = kept - kept.median()
+
+  control = samples.loc[samples["condition"] == "control", "sample_id"]
+  treated = samples.loc[samples["condition"] == "treated", "sample_id"]
+
+  treated_values = normalised.loc["gene_034", treated]
+  control_values = normalised.loc["gene_034", control]
+
+  difference = treated_values.mean() - control_values.mean()
+  result = stats.ttest_ind(treated_values, control_values, equal_var=False)
+
+  print(f"gene_034: treated - control = {difference:.2f}")
+  print(f"p = {result.pvalue:.4f}")

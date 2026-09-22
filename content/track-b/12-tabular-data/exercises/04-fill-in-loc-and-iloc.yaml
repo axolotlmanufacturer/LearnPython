@@ -1,0 +1,52 @@
+slug: fill-in-loc-and-iloc
+lesson: a-table-in-python
+position: 2
+title: Fetch one value by label and by position
+bloom: apply
+scaffold_level: fill_in
+packages: [pandas]
+prompt_markdown: |
+  Fetch `gene_005`'s value in sample `S03` twice: once by **label** with `loc`,
+  and once by **position** with `iloc`.
+
+  `gene_005` is the fifth row and `S03` is the third column. Remember that
+  positions count from zero.
+starter_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+
+  by_label = expression.loc[ROW_LABEL, COLUMN_LABEL]
+  by_position = expression.iloc[ROW_POSITION, COLUMN_POSITION]
+
+  print(by_label, by_position)
+files:
+  expression.csv:
+    from: datasets/expression.csv
+checks:
+  - kind: expr
+    label: Finds the value by label
+    expression: by_label
+    expected: 8.58
+    tolerance: 1.0e-9
+  - kind: expr
+    label: Finds the same value by position
+    expression: by_position
+    expected: 8.58
+    tolerance: 1.0e-9
+  - kind: source
+    label: Uses loc for one and iloc for the other
+    require_text: [".loc[", ".iloc["]
+hints:
+  - "`loc` takes names, in quotes: the row's name and the column's name."
+  - The fifth row is at position 4, and the third column at position 2.
+  - '`expression.loc["gene_005", "S03"]` and `expression.iloc[4, 2]`'
+solution_code: |
+  import pandas as pd
+
+  expression = pd.read_csv("expression.csv", index_col="feature")
+
+  by_label = expression.loc["gene_005", "S03"]
+  by_position = expression.iloc[4, 2]
+
+  print(by_label, by_position)

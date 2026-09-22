@@ -44,6 +44,8 @@ fails the learner who got something wrong. So the suite scans:
 | Lesson **after feedback**        | Pass and fail callouts, only reachable by running code |
 | Review queue                     | Radio groups, live regions                             |
 | Review question **after answer** | The verdict, which is injected into a live region      |
+| Track B lesson                   | Tables in lesson prose; long lines in the editor       |
+| Lesson with supplied input       | f-strings in the editor; the supplied-answers note     |
 
 ## Findings
 
@@ -78,6 +80,54 @@ the user is advised of the method.
 Fixed with a visually-hidden description referenced by `aria-describedby`, so it
 is announced on entering the editor: "Code editor. Tab inserts indentation. Press
 Escape and then Tab to move to the next control."
+
+### Fixed — syntax colours below AA contrast (serious), since Phase 3
+
+CodeMirror's default highlight style colours f-string text `#e40`: about 3.6:1 on
+the editor's active line, against the 4.5:1 AA requires. f-strings appear in every
+lesson from Module 2 onward, so this shipped in most of the curriculum. The audit
+did not see it for two phases because the one Track A lesson it scanned contains
+no f-string; it surfaced the first time a scanned page did.
+
+Two other default colours also fail on the tinted active line: type/namespace
+green `#085` (4.2:1) and invalid-token red `#f00` (3.7:1). `CodeEditor.tsx` now
+registers a full highlight style — CodeMirror's own, tag for tag, with exactly
+those three darkened:
+
+| Token                    | Default | Now       | On white | On active line |
+| ------------------------ | ------- | --------- | -------- | -------------- |
+| f-string text, escapes   | `#e40`  | `#b43c00` | 5.9:1    | 5.5:1          |
+| Type and namespace names | `#085`  | `#067047` | 6.2:1    | 5.7:1          |
+| Invalid tokens           | `#f00`  | `#c00000` | 6.5:1    | 6.0:1          |
+
+Every other colour is unchanged, so nobody who could read the editor before sees
+a different one. The lesson scanned for this is a page _with_ f-strings, so a
+regression fails the build.
+
+### Fixed — code blocks and tables that scroll sideways (WCAG 2.1.1), since Phase 1
+
+A code block or table wider than the column scrolls horizontally, and a region
+that scrolls must be reachable by keyboard; without focus there was no way to read
+the right-hand end of a long line. Markdown code blocks and tables are now
+focusable regions with a name. In the editor itself, long lines now **wrap**
+instead — better for a beginner regardless, since code that runs off the edge of
+the box is code they cannot read, on a phone especially.
+
+### Fixed — Run pressed before the page was ready did nothing
+
+Not a WCAG criterion, but an operability failure that falls hardest on learners
+with slow connections and older devices. Lesson pages are server-rendered, so the
+Run button is visible — and looks active — before the JavaScript that handles it
+has arrived. A press in that window was silently discarded: no output, no error.
+The end-to-end suite found it by clicking faster than the page hydrated. The
+button now renders disabled until it can act (`lib/useHydrated.ts`).
+
+### Added — plots have text equivalents (WCAG 1.1.1)
+
+Track B draws plots. Each captured figure's alt text is generated from what was
+actually drawn — title, axis labels, how many points or bars — rather than a
+generic "chart". A plot with no labels is described as having none, which is
+accurate and is also the nudge a reviewer would give.
 
 ### Verified, no change needed
 

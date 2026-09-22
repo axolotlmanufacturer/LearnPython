@@ -1,0 +1,83 @@
+items:
+  - slug: volcano-axes
+    position: 1
+    kind: multiple_choice
+    prompt_markdown: |
+      On a volcano plot, what does a point **high up and far to the left** mean?
+    options:
+      - The feature went down in treated, and the evidence for that is strong
+      - The feature went up in treated, with weak evidence
+      - The feature has a large p-value
+      - The feature was not measured well
+    answer: The feature went down in treated, and the evidence for that is strong
+    explanation_markdown: >-
+      Left of zero is lower in treated; up is a smaller adjusted p-value, because
+      the vertical axis is −log10 of it. High and far out to either side is
+      where the real changes live.
+
+  - slug: why-minus-log
+    position: 2
+    kind: multiple_choice
+    prompt_markdown: |
+      Why plot −log10 of the p-value rather than the p-value itself?
+    options:
+      - So that stronger evidence is higher, and very small p-values are spread out instead of squashed against zero
+      - Because matplotlib cannot plot small numbers
+      - To make the p-values larger than 1
+      - It makes no difference to the picture
+    answer: So that stronger evidence is higher, and very small p-values are spread out instead of squashed against zero
+    explanation_markdown: >-
+      p = 0.01 plots at 2, p = 0.0001 at 4. Plotted raw, every interesting
+      feature would sit in a thin smear just above zero and the uninteresting
+      ones would fill the plot.
+
+  - slug: both-thresholds
+    position: 3
+    kind: multiple_choice
+    prompt_markdown: |
+      A point sits above the significance line but between the ±1 effect lines.
+      What is the best reading?
+    options:
+      - Probably a real difference, but smaller than a doubling — and with many tests, some of these are chance
+      - A strong finding that should be reported first
+      - A plotting error
+      - The feature did not change at all
+    answer: Probably a real difference, but smaller than a doubling — and with many tests, some of these are chance
+    explanation_markdown: >-
+      On this dataset the two such points are exactly the two false positives
+      Benjamini–Hochberg let through. Requiring both thresholds is the effect-size
+      lesson of Module 14 made visible.
+
+  - slug: box-overlap
+    position: 4
+    kind: multiple_choice
+    prompt_markdown: |
+      Two boxplots for one feature, control and treated, overlap heavily. What
+      does that suggest?
+    options:
+      - Any difference between conditions is small compared with the disagreement between replicates
+      - The treatment certainly had no effect
+      - The feature was measured wrongly
+      - The medians must be identical
+    answer: Any difference between conditions is small compared with the disagreement between replicates
+    explanation_markdown: >-
+      Overlap says the spread swamps the difference — which is not the same as
+      proving there is no difference. It is the Module 11 rule, drawn.
+
+  - slug: recall-bh-promise
+    position: 5
+    kind: multiple_choice
+    reviews_module_slug: comparing-groups
+    prompt_markdown: |
+      From Module 14 — Benjamini–Hochberg at 0.05 promises what about the
+      features it reports?
+    options:
+      - On average, no more than about 5% of them are false
+      - None of them is false
+      - Every one has a large effect
+      - Exactly 5% of them are false
+    answer: On average, no more than about 5% of them are false
+    explanation_markdown: >-
+      It controls the proportion of mistakes in the list, not the chance of any
+      mistake at all — that is Bonferroni's promise. On this dataset it reported
+      22 features, 2 of them false.

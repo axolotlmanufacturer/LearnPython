@@ -1,0 +1,87 @@
+items:
+  - slug: what-a-feature-is
+    position: 1
+    kind: multiple_choice
+    prompt_markdown: |
+      In this track's data, what is a **feature**?
+    options:
+      - One thing that was measured, such as a gene — one row of the table
+      - One specimen that was measured — one column of the table
+      - One of the two conditions
+      - The average of a row
+    answer: One thing that was measured, such as a gene — one row of the table
+    explanation_markdown: >-
+      Rows are features, columns are samples. Each value is one feature measured
+      in one sample. The layout is a convention, which is exactly why it matters
+      to keep it the same everywhere.
+
+  - slug: why-a-sample-table
+    position: 2
+    kind: multiple_choice
+    prompt_markdown: |
+      Why is each sample's condition kept in a separate table rather than
+      worked out from its position or its name?
+    options:
+      - Facts about samples belong in one place, and columns in real data are often not in condition order
+      - Because pandas cannot read condition names
+      - To make the file smaller
+      - It is only a matter of taste
+    answer: Facts about samples belong in one place, and columns in real data are often not in condition order
+    explanation_markdown: >-
+      In this dataset S01 is treated and S02 is control. Assume "first six are
+      controls" and every later comparison is wrong without a single error
+      message. Looking it up is the only safe habit.
+
+  - slug: log2-difference
+    position: 3
+    kind: multiple_choice
+    prompt_markdown: |
+      On a log2 scale, one sample reads 8 and another reads 10. How do they
+      compare?
+    options:
+      - The second is four times the first
+      - The second is twice the first
+      - The second is 2 units more, which says nothing about ratio
+      - The second is 25% more
+    answer: The second is four times the first
+    explanation_markdown: >-
+      Each step of 1 is a doubling, so 2 steps is 2 × 2 = 4 times. This is why a
+      difference of averages on this scale reads directly as a fold change.
+
+  - slug: why-replicates
+    position: 4
+    kind: multiple_choice
+    prompt_markdown: |
+      Why measure six control samples instead of one?
+    options:
+      - To find out how much samples disagree when nothing has changed, so a difference can be judged against it
+      - To make the average more exciting
+      - Because the instrument needs six to work
+      - To have spares in case one is lost
+    answer: To find out how much samples disagree when nothing has changed, so a difference can be judged against it
+    explanation_markdown: >-
+      With one sample per condition you have a difference and no way to tell how
+      much of it is the treatment and how much is the ordinary disagreement
+      between any two samples. Replicates measure the disagreement.
+
+  - slug: recall-readline
+    position: 5
+    kind: predict_output
+    reviews_module_slug: files
+    prompt_markdown: |
+      From Module 8 — the file `t.csv` holds two lines, `a,b` and `1,2`. What
+      does this print?
+    code: |
+      with open("t.csv") as f:
+          f.readline()
+          print(f.readline().strip().split(","))
+    options:
+      - "`['1', '2']`"
+      - "`['a', 'b']`"
+      - "`[1, 2]`"
+      - "`1,2`"
+    answer: "`['1', '2']`"
+    explanation_markdown: >-
+      The first `readline()` consumes the header, so the second returns the data
+      line. `split` gives strings, not numbers — reading a file never converts
+      anything for you, which is a problem the next module has to solve.

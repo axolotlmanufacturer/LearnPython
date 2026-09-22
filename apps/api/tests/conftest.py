@@ -23,6 +23,32 @@ from app.db import get_db
 from app.main import create_app
 from app.models import Base
 
+
+def pytest_sessionstart(session: pytest.Session) -> None:
+    """In CI, refuse to run without the libraries Track B's content needs.
+
+    Locally, the Track B verification tests skip with an install hint when
+    pandas, scipy or matplotlib are missing — reasonable on a laptop. In CI the
+    same skip would be a green build that verified nothing, which is worse than a
+    red one. So there, a missing library is a failure.
+    """
+    if not os.environ.get("CI"):
+        return
+    import importlib.util
+
+    missing = [
+        name
+        for name in ("numpy", "pandas", "scipy", "matplotlib")
+        if importlib.util.find_spec(name) is None
+    ]
+    if missing:
+        pytest.exit(
+            f"CI is missing {', '.join(missing)}: Track B's content would go unverified. "
+            f'Install the API with pip install -e ".[dev,content]".',
+            returncode=1,
+        )
+
+
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL",
     os.environ.get(

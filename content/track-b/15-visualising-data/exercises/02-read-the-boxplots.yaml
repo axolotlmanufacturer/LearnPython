@@ -1,0 +1,66 @@
+slug: read-the-boxplots
+lesson: distributions
+position: 2
+title: Read which feature changed
+bloom: analyze
+scaffold_level: fill_in
+packages: [matplotlib]
+prompt_markdown: |
+  This program draws two boxplots side by side: `gene_001` and `gene_009`, each
+  split by condition. Run it and **look at the picture** before touching the code.
+
+  Then fill in your reading:
+
+  - `changed` — the name of the feature whose control and treated boxes do not
+    overlap at all;
+  - `direction` — `"up"` if its treated values are higher, `"down"` if lower.
+
+  This is a reading exercise. The answer is in the plot, not in a calculation.
+starter_code: |
+  import matplotlib.pyplot as plt
+
+  gene_001 = {"control": [-2.0, -2.86, -1.89, -1.74, -2.65, -2.72],
+              "treated": [-2.61, -2.08, -2.39, -2.33, -2.25, -1.74]}
+  gene_009 = {"control": [1.16, 0.54, 1.13, 0.32, 0.96, 1.28],
+              "treated": [-0.93, -0.52, -0.26, -0.81, -0.80, -0.77]}
+
+  figure, (left, right) = plt.subplots(1, 2, sharey=True)
+  for axes, name, data in [(left, "gene_001", gene_001), (right, "gene_009", gene_009)]:
+      axes.boxplot([data["control"], data["treated"]])
+      axes.set_xticks([1, 2], ["control", "treated"])
+      axes.set_title(name)
+  left.set_ylabel("normalised level (log2)")
+  plt.show()
+
+  changed = FEATURE_NAME
+  direction = UP_OR_DOWN
+checks:
+  - kind: expr
+    label: Identifies the feature whose conditions do not overlap
+    expression: changed
+    expected: gene_009
+  - kind: expr
+    label: Reads which way it moved
+    expression: direction
+    expected: down
+hints:
+  - In one pair of boxes, the control box and the treated box share a range of values. In the other, they are entirely separate.
+  - Is the separated treated box above its control box, or below it?
+solution_code: |
+  import matplotlib.pyplot as plt
+
+  gene_001 = {"control": [-2.0, -2.86, -1.89, -1.74, -2.65, -2.72],
+              "treated": [-2.61, -2.08, -2.39, -2.33, -2.25, -1.74]}
+  gene_009 = {"control": [1.16, 0.54, 1.13, 0.32, 0.96, 1.28],
+              "treated": [-0.93, -0.52, -0.26, -0.81, -0.80, -0.77]}
+
+  figure, (left, right) = plt.subplots(1, 2, sharey=True)
+  for axes, name, data in [(left, "gene_001", gene_001), (right, "gene_009", gene_009)]:
+      axes.boxplot([data["control"], data["treated"]])
+      axes.set_xticks([1, 2], ["control", "treated"])
+      axes.set_title(name)
+  left.set_ylabel("normalised level (log2)")
+  plt.show()
+
+  changed = "gene_009"
+  direction = "down"
